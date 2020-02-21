@@ -57,11 +57,65 @@ class File {
         }
     }
 
-    add(text) {
-        this.file[0] += text;
-        this.cursor.x = this.file[0].lenth - 1;
+    processKey(c) {
+        if (c === 'return') {
+            this.lineBreak();
+            return;
+        }
+
+        if (c === 'backspace') {
+            this.delete();
+            return;
+        }
+
+        if (c === 'space') { c = ' '; }
+        if (c === 'tab') { c = '    '; }
+
+        this.add(c);
     }
-    delete() { }
+
+    add(char) {
+        const { x, y } = this.cursor;
+        const line = this.file[y];
+        this.file[y] = line.slice(0, x) + char + line.slice(x);
+        this.cursor.x += char.length;
+    }
+
+    lineBreak() {
+        const { x, y } = this.cursor;
+        const line = this.file[y];
+        const start = line.slice(0, x);
+        const end = line.slice(x);
+
+        this.file[y] = start;
+
+        const top = this.file.slice(0, y + 1);
+        const bottom = this.file.slice(y + 1);
+
+        this.file = top.concat(end).concat(bottom);
+
+        this.cursor.x = 0;
+        this.cursor.y = y + 1;
+    }
+
+    delete() {
+        const { x, y } = this.cursor;
+
+        if (x === 0) {
+            if (y === 0) { return; }
+
+            this.cursor.x = this.file[y - 1].length;
+            this.file[y - 1] += this.file[y];
+            delete this.file[y];
+            this.cursor.y = y - 1;
+            return;
+        }
+
+        const line = this.file[y];
+        this.file[y] = line.slice(0, x - 1) + line.slice(x);
+        this.cursor.x = x - 1;
+    }
+
     copy() { }
     paste() { }
     replace() { }

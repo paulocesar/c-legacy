@@ -3,10 +3,6 @@ const tty = require('tty');
 const readline = require('readline');
 const File = require('./src/file');
 
-const sleep = util.promisify(function timeout(milisseconds, callback) {
-    setTimeout(callback, milisseconds);
-});
-
 const file = new File();
 
 function displayRender(text) {
@@ -54,7 +50,7 @@ process.stdin.on('keypress', function (char, key) {
         return;
     }
 
-    file.add(key.name);
+    file.processKey(key.name);
 
     displayRefresh();
 });
