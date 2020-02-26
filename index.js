@@ -3,7 +3,7 @@ const tty = require('tty');
 const readline = require('readline');
 const File = require('./src/file');
 
-const file = new File();
+let file = null;
 global.lastText = '';
 
 function displayRender(text) {
@@ -33,11 +33,11 @@ function terminalSetup() {
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
-        global.lastText = `{ char: ${char}, key: ${JSON.stringify(key)} }`;
         if (!key) { return; }
 
         if (key.ctrl) {
             if (key.name === 'c') { return terminalFinish(); }
+            if (key.name === 's') { return terminalSave(); }
 
             if (key.name === 'k') { file.moveTo({ x: 0, y: 1 }); }
             if (key.name === 'l') { file.moveTo({ x: 1, y: 0 }); }
@@ -65,6 +65,14 @@ function terminalSetup() {
     });
 
     process.stdout.on('resize', displayResize);
+}
+
+function terminalLoad(filename) {
+    file = new File(filename);
+}
+
+function terminalSave() {
+    const filename = process.argv[2];
 
 }
 
@@ -74,6 +82,7 @@ function terminalFinish(status = 0) {
     process.exit(status);
 }
 function main() {
+    terminalLoad(process.argv[2]);
     terminalSetup();
     displayResize();
 }

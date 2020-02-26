@@ -1,9 +1,17 @@
 const ansi = require('./ansi-escape-codes');
+const fs = require('fs');
 
 class File {
     constructor(filename) {
         this.filename = filename;
+
         this.file = [ '' ];
+
+        if (this.filename) {
+            const t = fs.readFileSync(this.filename, 'utf8')
+            if (t) { this.file = t.split('\n'); }
+        }
+
         this.cursor = { x: 0, y: 0 };
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
