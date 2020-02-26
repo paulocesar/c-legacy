@@ -6,18 +6,26 @@ const File = require('./src/file');
 let file = null;
 global.lastText = '';
 
-function displayRender(text) {
-    readline.cursorTo(process.stdout, 0, 0);
-    readline.clearScreenDown(process.stdout);
-    process.stdout.write(text);
+let previousLines = [ ];
+
+function displayRender(lines) {
+    for (let y = 0; y < process.stdout.rows; y++) {
+        if (lines[y] === previousLines[y]) { continue; }
+        readline.cursorTo(process.stdout, 0, y);
+        process.stdout.write(lines[y]);
+    }
+
+    previousLines = lines;
 }
 
 function displayRefresh() {
     // must respect window size, apply colors
     // and replace special chars
-    const display = file.getDisplayLines();
 
-    displayRender(`${display}\n${global.lastText}`);
+    const lines = file.getDisplayLines();
+    lines.push(global.lastText);
+
+    displayRender(lines);
 }
 
 function displayResize() {
@@ -30,9 +38,14 @@ function terminalSetup() {
     process.stdin.resume();
     process.stdin.write('\x1B[?25l');
     readline.emitKeypressEvents(process.stdin);
+
+    readline.cursorTo(process.stdout, 0, 0);
+    readline.clearScreenDown(process.stdout);
+
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
+
         if (!key) { return; }
 
         if (key.ctrl) {
@@ -73,12 +86,10 @@ function terminalLoad(filename) {
 
 function terminalSave() {
     const filename = process.argv[2];
-
 }
 
 function terminalFinish(status = 0) {
     process.stdin.write('\x1B[?25h');
-    displayRender('');
     process.exit(status);
 }
 function main() {

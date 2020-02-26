@@ -26,35 +26,47 @@ class File {
         const end = this.rows.start + this.rows.size;
         const columns = this.columns.size;
 
-        let display = '';
+        const lines = [ ];
+
+        global.lastText = `char: ${start}, end: ${end}`;
 
         for (let h = start; h <= end; h++) {
             const line = this.file[h];
 
             if (line === undefined) {
-                display += '~\n';
+                lines.push('~\n');
                 continue;
             }
 
+            let display = '';
+
+            let hasChanges = false;
+
             for (let w = 0; w <= columns; w++) {
+
                 if (w === this.cursor.x && h === this.cursor.y) {
                     display += ansi.cursor;
+                    hasChanges = true;
                 }
 
                 let c = line[w];
 
                 if (c === undefined) {
-                    display += ' \n';
-                    display += ansi.reset;
-                    break;
+                    display += ' ';
+                } else {
+                    display += `${c}`;
                 }
 
-                display += `${c}`;
-                display += ansi.reset;
+                if (hasChanges) {
+                    display += ansi.reset;
+                    hasChanges = false;
+                }
             }
+
+            lines.push(display);
         }
 
-        return display;
+        return lines;
     }
 
     resizeRows(width, height) {
