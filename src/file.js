@@ -1,8 +1,11 @@
+const ansi = require('./ansi-escape-codes');
+
 class File {
     constructor(filename) {
         this.filename = filename;
         this.file = [ '' ];
         this.cursor = { x: 0, y: 0 };
+        this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
         this.selections = [{
             start: { x: 0, y: 0 },
@@ -11,36 +14,66 @@ class File {
     }
 
     getDisplayLines() {
-        const lines = [ ];
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
+        const columns = this.columns.size;
 
-        for (let i = start; i <= end; i++) {
-            lines.push(this.file[i]);
+        let display = '';
+
+        for (let h = start; h <= end; h++) {
+            const line = this.file[h];
+
+            if (line === undefined) {
+                display += '~\n';
+                continue;
+            }
+
+            for (let w = 0; w <= columns; w++) {
+                if (w === this.cursor.x && h === this.cursor.y) {
+                    display += ansi.cursor;
+                }
+
+                let c = line[w];
+
+                if (c === undefined) {
+                    display += ' \n';
+                    display += ansi.reset;
+                    break;
+                }
+
+                display += `${c}`;
+                display += ansi.reset;
+            }
         }
 
-        return lines;
+        return display;
     }
 
-    resizeRows(size) {
-        this.rows.size = size;
-        this.updateRows();
+    resizeRows(width, height) {
+        this.rows.size = height;
+        this.columns.size = width;
+        this.updateSize();
     }
 
-    moveTo(point) {
-        const lenth = this.file.length - 1;
+    moveTo(direction) {
+        const length = this.file.length - 1;
 
-        this.cursor.x = point.x;
+        this.cursor.x += direction.x;
         if (this.cursor.x < 0) { this.cursor.x = 0; }
         if (this.cursor.x > length) { this.cursor.x = length; }
 
         const rowLength = this.file[this.cursor.x].length - 1;
 
-        this.cursor.y = point.y;
+        this.cursor.y += direction.y;
         if (this.cursor.y < 0) { this.cursor.y = 0; }
         if (this.cursor.x > rowLength) { this.cursor.x = rowLength; }
 
+        this.updateSize();
+    }
+
+    updateSize() {
         this.updateRows();
+        this.updateColumns();
     }
 
     updateRows() {
@@ -54,6 +87,20 @@ class File {
 
         if (this.cursor.x - 3 < start && this.cursor.x - 3 > 0) {
             this.rows.start -= 1;
+        }
+    }
+
+    updateColumns() {
+        const length = this.file.length - 1;
+        const start = this.columns.start;
+        const end = this.columns.start + this.columns.size;
+
+        if (this.cursor.x + 3 > end && this.cursor.x + 3 < length) {
+            this.columns.start += 1;
+        }
+
+        if (this.cursor.x - 3 < start && this.cursor.x - 3 > 0) {
+            this.columns.start -= 1;
         }
     }
 

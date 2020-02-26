@@ -4,25 +4,24 @@ const readline = require('readline');
 const File = require('./src/file');
 
 const file = new File();
+let lastText = '';
 
 function displayRender(text) {
     readline.cursorTo(process.stdout, 0, 0);
     readline.clearScreenDown(process.stdout);
-    process.stdout.write(`${text}`);
+    process.stdout.write(`${text}\n${lastText}`);
 }
 
 function displayRefresh() {
     // must respect window size, apply colors
     // and replace special chars
-    const display = file.getDisplayLines()
-        .map((l) => l == null ? '~' : l)
-        .join('\n');
+    const display = file.getDisplayLines();
 
     displayRender(display);
 }
 
 function displayResize() {
-    file.resizeRows(process.stdout.rows - 3);
+    file.resizeRows(process.stdout.columns, process.stdout.rows - 3);
     displayRefresh();
 }
 
@@ -32,6 +31,40 @@ function terminalSetup() {
     process.stdin.write('\x1B[?25l');
     readline.emitKeypressEvents(process.stdin);
     displayRefresh();
+
+    process.stdin.on('keypress', function (char, key) {
+        if (!key) { return; }
+
+        if (key.ctrl) {
+            if (key.name === 'c') { return terminalFinish(); }
+
+            if (key.name === 'k') { file.moveTo({ x: 0, y: 1 }); }
+            if (key.name === 'l') { file.moveTo({ x: 1, y: 0 }); }
+            displayRefresh();
+
+            return;
+        }
+
+        if (key.sequence === '\b' && key.name === 'backspace') {
+            file.moveTo({ x: -1, y: 0 });
+            displayRefresh();
+            return;
+        }
+
+        if (key.sequence === '\n' && key.name === 'enter') {
+            file.moveTo({ x: 0, y: -1 });
+            displayRefresh();
+            return;
+        }
+
+
+        file.processKey(key.name);
+
+        displayRefresh();
+    });
+
+    process.stdout.on('resize', displayResize);
+
 }
 
 function terminalFinish(status = 0) {
@@ -39,24 +72,6 @@ function terminalFinish(status = 0) {
     displayRender('');
     process.exit(status);
 }
-
-process.stdin.on('keypress', function (char, key) {
-    if (!key) { return; }
-
-    if (key.ctrl) {
-        if (key.name === 'c') {
-            return terminalFinish();
-        }
-        return;
-    }
-
-    file.processKey(key.name);
-
-    displayRefresh();
-});
-
-process.stdout.on('resize', displayResize);
-
 function main() {
     terminalSetup();
     displayResize();
