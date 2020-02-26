@@ -9,8 +9,7 @@ global.lastText = '';
 function displayRender(text) {
     readline.cursorTo(process.stdout, 0, 0);
     readline.clearScreenDown(process.stdout);
-    global.lastText = JSON.stringify(file.cursor);
-    process.stdout.write(`${text}\n${global.lastText}`);
+    process.stdout.write(text);
 }
 
 function displayRefresh() {
@@ -18,7 +17,7 @@ function displayRefresh() {
     // and replace special chars
     const display = file.getDisplayLines();
 
-    displayRender(display);
+    displayRender(`${display}\n${global.lastText}`);
 }
 
 function displayResize() {
@@ -34,6 +33,7 @@ function terminalSetup() {
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
+        global.lastText = `{ char: ${char}, key: ${JSON.stringify(key)} }`;
         if (!key) { return; }
 
         if (key.ctrl) {

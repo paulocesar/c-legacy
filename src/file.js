@@ -58,12 +58,13 @@ class File {
     moveTo(direction) {
         let length = this.file.length - 1;
         if (length < 0) { length = 0; }
-        let rowLength = this.file[this.cursor.y].length;
-        if (rowLength < 0) { rowLength = 0; }
 
         this.cursor.y += direction.y;
         if (this.cursor.y < 0) { this.cursor.y = 0; }
         if (this.cursor.y > length) { this.cursor.y = length; }
+
+        let rowLength = this.file[this.cursor.y].length || 0;
+        if (rowLength < 0) { rowLength = 0; }
 
         this.cursor.x += direction.x;
         if (this.cursor.x < 0) { this.cursor.x = 0; }
