@@ -4,12 +4,13 @@ const readline = require('readline');
 const File = require('./src/file');
 
 const file = new File();
-let lastText = '';
+global.lastText = '';
 
 function displayRender(text) {
     readline.cursorTo(process.stdout, 0, 0);
     readline.clearScreenDown(process.stdout);
-    process.stdout.write(`${text}\n${lastText}`);
+    global.lastText = JSON.stringify(file.cursor);
+    process.stdout.write(`${text}\n${global.lastText}`);
 }
 
 function displayRefresh() {
