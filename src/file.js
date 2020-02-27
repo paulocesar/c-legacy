@@ -24,7 +24,7 @@ class File {
     getDisplayLines() {
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
-        const columns = this.columns.size;
+        const columns = this.columns.size - ansi.reset.length;
 
         const lines = [ ];
 
@@ -62,6 +62,9 @@ class File {
                     hasChanges = false;
                 }
             }
+
+            display = display.substring(0, columns - 1);
+            display += ansi.reset;
 
             lines.push(display);
         }
