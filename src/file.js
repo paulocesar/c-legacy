@@ -28,8 +28,6 @@ class File {
 
         const lines = [ ];
 
-        global.lastText = `char: ${start}, end: ${end}`;
-
         for (let h = start; h <= end; h++) {
             const line = this.file[h];
 
@@ -105,28 +103,20 @@ class File {
         const length = this.file.length - 1;
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
+        const { y } = this.cursor;
 
-        if (this.cursor.x + 3 > end && this.cursor.x + 3 < length) {
-            this.rows.start += 1;
-        }
-
-        if (this.cursor.x - 3 < start && this.cursor.x - 3 > 0) {
-            this.rows.start -= 1;
-        }
+        if (y + 3 > end && y + 3 < length) { this.rows.start += 1; }
+        if (y - 3 < start && y - 3 > 0) { this.rows.start -= 1; }
     }
 
     updateColumns() {
         const length = this.file.length - 1;
         const start = this.columns.start;
         const end = this.columns.start + this.columns.size;
+        const { x } = this.cursor;
 
-        if (this.cursor.x + 3 > end && this.cursor.x + 3 < length) {
-            this.columns.start += 1;
-        }
-
-        if (this.cursor.x - 3 < start && this.cursor.x - 3 > 0) {
-            this.columns.start -= 1;
-        }
+        if (x + 3 > end && x + 3 < length) { this.columns.start += 1; }
+        if (x - 3 < start && x - 3 > 0) { this.columns.start -= 1; }
     }
 
     processKey(c) {

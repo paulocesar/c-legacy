@@ -45,8 +45,9 @@ function terminalSetup() {
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
-
         if (!key) { return; }
+
+        // global.lastText = `char: ${char}, key: ${JSON.stringify(key)}`;
 
         if (key.ctrl) {
             if (key.name === 'c') { return terminalFinish(); }
@@ -72,7 +73,7 @@ function terminalSetup() {
         }
 
 
-        file.processKey(key.name);
+        file.processKey(key.name || key.sequence);
 
         displayRefresh();
     });
