@@ -94,10 +94,7 @@ class Editor {
         for (let i = this.modifiers.length - 1; i >= 0; i--) {
             const m = this.modifiers[i];
 
-            if(m(this)) {
-                global.lastText = 'hasChanges';
-                hasChanges = true;
-            }
+            if(m(this)) { hasChanges = true; }
         }
 
         return hasChanges;
