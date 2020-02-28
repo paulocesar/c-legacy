@@ -1,7 +1,40 @@
 const ansi = require('./ansi-escape-codes');
 const fs = require('fs');
 
-class File {
+const modifiers = {
+    line80(editor) {
+        const { w } = editor.currentDisplayLine;
+        if (w !== 79) { return false; }
+
+        editor.currentDisplayLine.context += ansi.line80;
+        return true;
+    },
+
+    cursor(editor) {
+        const { w, h } = editor.currentDisplayLine;
+
+        if (editor.cursor.x !== w || editor.cursor.y !== h) {
+            return false;
+        }
+
+        editor.currentDisplayLine.context += ansi.cursor;
+
+        return true;
+    }
+};
+
+const prefixes = {
+    lineNumbers: {
+        size(editor) { return `${editor.file.length}`.length + 1; },
+        action(editor) {
+            const num = `${editor.currentDisplayLine.h}`;
+            const maxSize = this.size(editor);
+            return (Array(maxSize - num.length).join(' ')) + num + ' ';
+        }
+    }
+};
+
+class Editor {
     constructor(filename) {
         this.filename = filename;
 
@@ -12,68 +45,114 @@ class File {
             if (t) { this.file = t.split('\n'); }
         }
 
-        this.cursor = { x: 0, y: 0 };
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
-        this.selections = [{
+
+        this.cursor = { x: 0, y: 0 };
+        this.selection = {
             start: { x: 0, y: 0 },
             end: { x: 0, y: 0 }
-        }];
+        };
+
+        this.prefixes = [
+            prefixes.lineNumbers
+        ];
+
+        this.modifiers = [
+            modifiers.line80,
+            modifiers.cursor
+        ];
+    }
+
+
+    maxPrexifSize() {
+        let size = 0;
+
+        for (let i = this.prefixes.length - 1; i >= 0; i--) {
+            const p = this.prefixes[i].size(this);
+
+            if (size < p) { size = p; }
+        }
+
+        return size;
+    }
+
+    prefix(idx) {
+        let prefix = '';
+
+        for (let i = this.prefixes.length - 1; i >= 0; i--) {
+            const res = this.prefixes[i].action(this);
+            if (res) { prefix = res; }
+        }
+
+        return prefix;
+    }
+
+    applyModifiers() {
+        let hasChanges = false;
+
+        for (let i = this.modifiers.length - 1; i >= 0; i--) {
+            const m = this.modifiers[i];
+
+            if(m(this)) {
+                global.lastText = 'hasChanges';
+                hasChanges = true;
+            }
+        }
+
+        return hasChanges;
     }
 
     getDisplayLines() {
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
-        const numSize = `${this.file.length}`.length;
-        const columns = this.columns.size - 2 - numSize;
+        const prefixSize = this.maxPrexifSize();
+        const columns = this.columns.size - prefixSize - 1;
 
         const lines = [ ];
 
-        for (let h = start; h <= end; h++) {
-            const line = this.file[h];
+        this.currentDisplayLine = { };
 
-            let num = `${h}`;
-            num = (Array(numSize - num.length + 1).join(' ')) + num;
+        for (let h = start; h <= end; h++) {
+            this.currentDisplayLine.h = h;
+            this.currentDisplayLine.w = 0;
+            this.currentDisplayLine.context = '';
+
+            const line = this.file[h];
+            const prefix = this.prefix(h);
+
+            this.currentDisplayLine.context = `${prefix}`;
 
             if (line === undefined) {
-                lines.push(`${num} ~`);
+                this.currentDisplayLine.context += '~';
+                lines.push(this.currentDisplayLine.context);
                 continue;
             }
 
-            let display = `${num} `;
-
-            let hasChanges = false;
-
             for (let w = 0; w <= columns; w++) {
+                this.currentDisplayLine.w = w;
 
-                if (w === 79) {
-                    display += ansi.line80;
-                    hasChanges = true;
-                }
-
-                if (w === this.cursor.x && h === this.cursor.y) {
-                    display += ansi.cursor;
-                    hasChanges = true;
-                }
+                const hasChanges = this.applyModifiers();
 
                 let c = line[w];
 
                 if (c === undefined) {
-                    display += ' ';
+                    this.currentDisplayLine.context += ' ';
                 } else {
-                    display += `${c}`;
+                    this.currentDisplayLine.context += `${c}`;
                 }
 
                 if (hasChanges) {
-                    display += ansi.reset;
-                    hasChanges = false;
+                    this.currentDisplayLine.context += ansi.reset;
                 }
             }
 
-            display += ansi.reset;
+            this.currentDisplayLine.context += ansi.reset;
 
-            lines.push(display);
+            lines.push(this.currentDisplayLine.context);
         }
+
+        this.currentDisplayLine = null;
 
         return lines;
     }
@@ -193,4 +272,4 @@ class File {
     replace() { }
 }
 
-module.exports = File;
+module.exports = Editor;

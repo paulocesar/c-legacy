@@ -1,9 +1,9 @@
 const util = require('util');
 const tty = require('tty');
 const readline = require('readline');
-const File = require('./src/file');
+const Editor = require('./src/editor');
 
-let file = null;
+let editor = null;
 global.lastText = '';
 
 let previousLines = [ ];
@@ -22,14 +22,14 @@ function displayRefresh() {
     // must respect window size, apply colors
     // and replace special chars
 
-    const lines = file.getDisplayLines();
+    const lines = editor.getDisplayLines();
     lines.push(global.lastText);
 
     displayRender(lines);
 }
 
 function displayResize() {
-    file.resizeRows(process.stdout.columns, process.stdout.rows - 3);
+    editor.resizeRows(process.stdout.columns, process.stdout.rows - 3);
     displayRefresh();
 }
 
@@ -53,27 +53,27 @@ function terminalSetup() {
             if (key.name === 'c') { return terminalFinish(); }
             if (key.name === 's') { return terminalSave(); }
 
-            if (key.name === 'k') { file.moveTo({ x: 0, y: -1 }); }
-            if (key.name === 'l') { file.moveTo({ x: 1, y: 0 }); }
+            if (key.name === 'k') { editor.moveTo({ x: 0, y: -1 }); }
+            if (key.name === 'l') { editor.moveTo({ x: 1, y: 0 }); }
             displayRefresh();
 
             return;
         }
 
         if (key.sequence === '\b' && key.name === 'backspace') {
-            file.moveTo({ x: -1, y: 0 });
+            editor.moveTo({ x: -1, y: 0 });
             displayRefresh();
             return;
         }
 
         if (key.sequence === '\n' && key.name === 'enter') {
-            file.moveTo({ x: 0, y: 1 });
+            editor.moveTo({ x: 0, y: 1 });
             displayRefresh();
             return;
         }
 
 
-        file.processKey(key.name || key.sequence);
+        editor.processKey(key.name || key.sequence);
 
         displayRefresh();
     });
@@ -82,7 +82,7 @@ function terminalSetup() {
 }
 
 function terminalLoad(filename) {
-    file = new File(filename);
+    editor = new Editor(filename);
 }
 
 function terminalSave() {
