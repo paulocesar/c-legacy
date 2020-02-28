@@ -52,7 +52,7 @@ function terminalSetup() {
             if (key.name === 'c') { return terminalFinish(); }
             if (key.name === 's') { return terminalSave(); }
 
-            if (key.name === 'k') { file.moveTo({ x: 0, y: 1 }); }
+            if (key.name === 'k') { file.moveTo({ x: 0, y: -1 }); }
             if (key.name === 'l') { file.moveTo({ x: 1, y: 0 }); }
             displayRefresh();
 
@@ -66,7 +66,7 @@ function terminalSetup() {
         }
 
         if (key.sequence === '\n' && key.name === 'enter') {
-            file.moveTo({ x: 0, y: -1 });
+            file.moveTo({ x: 0, y: 1 });
             displayRefresh();
             return;
         }

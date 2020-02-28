@@ -130,6 +130,8 @@ class File {
     }
 
     processKey(c) {
+        if (c == null) { return; }
+
         if (c === 'return') {
             this.lineBreak();
             return;
@@ -178,7 +180,7 @@ class File {
 
             this.cursor.x = this.file[y - 1].length;
             this.file[y - 1] += this.file[y];
-            delete this.file[y];
+            this.file.splice(y, 1);
             this.cursor.y = y - 1;
             return;
         }
