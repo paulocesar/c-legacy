@@ -1,7 +1,7 @@
 const ansi = require('./ansi-escape-codes');
 const fs = require('fs');
 
-const modifiers = {
+const layouts = {
     line80(editor) {
         const { w } = editor.currentDisplayLine;
         if (w !== 79) { return false; }
@@ -29,7 +29,8 @@ const prefixes = {
         action(editor) {
             const num = `${editor.currentDisplayLine.h}`;
             const maxSize = this.size(editor);
-            return (Array(maxSize - num.length).join(' ')) + num + ' ';
+            const prefix = (Array(maxSize - num.length).join(' ')) + num + ' ';
+            editor.currentDisplayLine.context = prefix;
         }
     }
 };
@@ -58,9 +59,9 @@ class Editor {
             prefixes.lineNumbers
         ];
 
-        this.modifiers = [
-            modifiers.line80,
-            modifiers.cursor
+        this.layouts = [
+            layouts.line80,
+            layouts.cursor
         ];
     }
 
@@ -70,30 +71,23 @@ class Editor {
 
         for (let i = this.prefixes.length - 1; i >= 0; i--) {
             const p = this.prefixes[i].size(this);
-
             if (size < p) { size = p; }
         }
 
         return size;
     }
 
-    prefix(idx) {
-        let prefix = '';
-
+    applyPrefixes(idx) {
         for (let i = this.prefixes.length - 1; i >= 0; i--) {
-            const res = this.prefixes[i].action(this);
-            if (res) { prefix = res; }
+            this.prefixes[i].action(this);
         }
-
-        return prefix;
     }
 
-    applyModifiers() {
+    applyLayouts() {
         let hasChanges = false;
 
-        for (let i = this.modifiers.length - 1; i >= 0; i--) {
-            const m = this.modifiers[i];
-
+        for (let i = this.layouts.length - 1; i >= 0; i--) {
+            const m = this.layouts[i];
             if(m(this)) { hasChanges = true; }
         }
 
@@ -116,9 +110,8 @@ class Editor {
             this.currentDisplayLine.context = '';
 
             const line = this.file[h];
-            const prefix = this.prefix(h);
 
-            this.currentDisplayLine.context = `${prefix}`;
+            this.applyPrefixes(h);
 
             if (line === undefined) {
                 this.currentDisplayLine.context += '~';
@@ -129,7 +122,7 @@ class Editor {
             for (let w = 0; w <= columns; w++) {
                 this.currentDisplayLine.w = w;
 
-                const hasChanges = this.applyModifiers();
+                const hasChanges = this.applyLayouts();
 
                 let c = line[w];
 
@@ -203,7 +196,23 @@ class Editor {
         if (x - 3 < start && x - 3 >= 0) { this.columns.start -= 1; }
     }
 
-    processKey(c) {
+    processKey(char, key) {
+        if (key.ctrl) {
+            if (key.name === 'k') { return this.moveTo({ x: 0, y: -1 }); }
+            if (key.name === 'l') { return this.moveTo({ x: 1, y: 0 }); }
+            return;
+        }
+
+        if (key.sequence === '\b' && key.name === 'backspace') {
+            return this.moveTo({ x: -1, y: 0 });
+        }
+
+        if (key.sequence === '\n' && key.name === 'enter') {
+            return this.moveTo({ x: 0, y: 1 });
+        }
+
+        const c = key.name || key.sequence;
+
         if (c == null) { return; }
 
         if (c === 'return') {
@@ -223,6 +232,8 @@ class Editor {
     }
 
     add(char) {
+        this.isDirty = true;
+
         const { x, y } = this.cursor;
         const line = this.file[y];
         this.file[y] = line.slice(0, x) + char + line.slice(x);
@@ -230,6 +241,8 @@ class Editor {
     }
 
     lineBreak() {
+        this.isDirty = true;
+
         const { x, y } = this.cursor;
         const line = this.file[y];
         const start = line.slice(0, x);
@@ -248,10 +261,11 @@ class Editor {
 
     delete() {
         const { x, y } = this.cursor;
+        if (x === 0 && y === 0) { return; }
+
+        this.isDirty = true;
 
         if (x === 0) {
-            if (y === 0) { return; }
-
             this.cursor.x = this.file[y - 1].length;
             this.file[y - 1] += this.file[y];
             this.file.splice(y, 1);
