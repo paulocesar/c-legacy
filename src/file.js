@@ -24,23 +24,32 @@ class File {
     getDisplayLines() {
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
-        const columns = this.columns.size - ansi.reset.length;
+        const numSize = `${this.file.length}`.length;
+        const columns = this.columns.size - 2 - numSize;
 
         const lines = [ ];
 
         for (let h = start; h <= end; h++) {
             const line = this.file[h];
 
+            let num = `${h}`;
+            num = (Array(numSize - num.length + 1).join(' ')) + num;
+
             if (line === undefined) {
-                lines.push('~\n');
+                lines.push(`${num} ~`);
                 continue;
             }
 
-            let display = '';
+            let display = `${num} `;
 
             let hasChanges = false;
 
             for (let w = 0; w <= columns; w++) {
+
+                if (w === 79) {
+                    display += ansi.line80;
+                    hasChanges = true;
+                }
 
                 if (w === this.cursor.x && h === this.cursor.y) {
                     display += ansi.cursor;
@@ -61,7 +70,6 @@ class File {
                 }
             }
 
-            display = display.substring(0, columns - 1);
             display += ansi.reset;
 
             lines.push(display);
@@ -106,7 +114,7 @@ class File {
         const { y } = this.cursor;
 
         if (y + 3 > end && y + 3 < length) { this.rows.start += 1; }
-        if (y - 3 < start && y - 3 > 0) { this.rows.start -= 1; }
+        if (y - 3 < start && y - 3 >= 0) { this.rows.start -= 1; }
     }
 
     updateColumns() {
@@ -116,7 +124,7 @@ class File {
         const { x } = this.cursor;
 
         if (x + 3 > end && x + 3 < length) { this.columns.start += 1; }
-        if (x - 3 < start && x - 3 > 0) { this.columns.start -= 1; }
+        if (x - 3 < start && x - 3 >= 0) { this.columns.start -= 1; }
     }
 
     processKey(c) {
