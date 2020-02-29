@@ -2,8 +2,11 @@ const util = require('util');
 const tty = require('tty');
 const readline = require('readline');
 const Editor = require('./src/editor');
+const CommandLine = require('./src/command-line');
 
 let editor = null;
+let commandLine = null;
+
 
 let previousLines = [ ];
 
@@ -19,9 +22,8 @@ function displayRender(lines) {
 }
 
 function displayRefresh() {
-    const lines = editor.getDisplayLines();
-
-    displayRender(lines);
+    displayRender(editor.getDisplayLines()
+        .concat(commandLine.getDisplayLines()));
 }
 
 function displayClear() {
@@ -32,6 +34,7 @@ function displayClear() {
 
 function displayResize() {
     editor.resizeRows(process.stdout.columns, process.stdout.rows - 2);
+    commandLine.resizeRows(process.stdout.columns, 1);
     displayClear();
     displayRefresh();
 }
@@ -54,7 +57,11 @@ function terminalSetup() {
             if (key.name === 's') { return terminalSave(); }
         }
 
-        editor.processKey(char, key);
+        commandLine.processKey(char, key);
+        //editor.processKey(char, key);
+
+        editor.setStatusMessage(`char: ${char}, key: ${JSON.stringify(key)}`);
+
         displayRefresh();
     });
 
@@ -63,6 +70,7 @@ function terminalSetup() {
 
 function terminalLoad(filename) {
     editor = new Editor(filename);
+    commandLine = new CommandLine();
 }
 
 function terminalSave() {

@@ -1,42 +1,12 @@
-const ansi = require('./ansi-escape-codes');
 const fs = require('fs');
+const EventEmitter = require('events');
+const ansi = require('./ansi-escape-codes');
+const modifiers = require('./modifiers');
 
-const layouts = {
-    line80(editor) {
-        const { w } = editor.currentDisplayLine;
-        if (w !== 79) { return false; }
-
-        editor.currentDisplayLine.context += ansi.line80;
-        return true;
-    },
-
-    cursor(editor) {
-        const { w, h } = editor.currentDisplayLine;
-
-        if (editor.cursor.x !== w || editor.cursor.y !== h) {
-            return false;
-        }
-
-        editor.currentDisplayLine.context += ansi.cursor;
-
-        return true;
-    }
-};
-
-const prefixes = {
-    lineNumbers: {
-        size(editor) { return `${editor.file.length}`.length + 1; },
-        action(editor) {
-            const num = `${editor.currentDisplayLine.h}`;
-            const maxSize = this.size(editor);
-            const prefix = (Array(maxSize - num.length).join(' ')) + num + ' ';
-            editor.currentDisplayLine.context = prefix;
-        }
-    }
-};
-
-class Editor {
+class Editor extends EventEmitter {
     constructor(filename) {
+        super();
+
         this.filename = filename;
 
         this.file = [ '' ];
@@ -49,7 +19,8 @@ class Editor {
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
 
-        this.status = { rows: 1, context: this.filename || '' };
+        this.status = { rows: 1, context: '' };
+        this.setDefaultStatusMessage();
 
         this.cursor = { x: 0, y: 0 };
         this.selection = {
@@ -58,15 +29,22 @@ class Editor {
         };
 
         this.prefixes = [
-            prefixes.lineNumbers
+            modifiers.prefixes.lineNumbers
         ];
 
         this.layouts = [
-            layouts.cursor,
-            layouts.line80
+            modifiers.layouts.cursor,
+            modifiers.layouts.line80
         ];
     }
 
+    setDefaultStatusMessage() {
+        this.status.context = this.filename || '(empty)';
+    }
+
+    setStatusMessage(msg) {
+        this.status.context = msg;
+    }
 
     maxPrefixSize() {
         let size = 0;
@@ -147,10 +125,11 @@ class Editor {
 
         if (this.status.rows) {
             const backfill = Array(this.columns.size).join(' ');
+            const symbol = this.isDirty ? '*' : ' ';
+            const msg = symbol + this.status.context + backfill;
             const statusSize = this.columns.size * this.status.rows;
-            const statusLine = ansi.background.black +
-                ansi.bright + ansi.foreground.white +
-                (this.status.context + backfill).substring(0, statusSize) +
+            const statusLine = ansi.background.white +
+                ansi.foreground.black + (msg).substring(0, statusSize) +
                 ansi.reset;
 
             lines.push(statusLine);
