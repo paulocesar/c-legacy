@@ -62,8 +62,8 @@ class Editor {
         ];
 
         this.layouts = [
-            layouts.line80,
-            layouts.cursor
+            layouts.cursor,
+            layouts.line80
         ];
     }
 
