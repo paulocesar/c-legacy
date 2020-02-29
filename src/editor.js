@@ -49,6 +49,8 @@ class Editor {
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
 
+        this.status = { rows: 1, context: this.filename || '' };
+
         this.cursor = { x: 0, y: 0 };
         this.selection = {
             start: { x: 0, y: 0 },
@@ -66,7 +68,7 @@ class Editor {
     }
 
 
-    maxPrexifSize() {
+    maxPrefixSize() {
         let size = 0;
 
         for (let i = this.prefixes.length - 1; i >= 0; i--) {
@@ -95,16 +97,17 @@ class Editor {
     }
 
     getDisplayLines() {
-        const start = this.rows.start;
-        const end = this.rows.start + this.rows.size;
-        const prefixSize = this.maxPrexifSize();
-        const columns = this.columns.size - prefixSize - 1;
+        const rowStart = this.rows.start;
+        const rowEnd = rowStart + this.rows.size;
+        const prefixSize = this.maxPrefixSize();
+        const colStart = this.columns.start;
+        const colEnd = colStart + this.columns.size - prefixSize - 1;
 
         const lines = [ ];
 
         this.currentDisplayLine = { };
 
-        for (let h = start; h <= end; h++) {
+        for (let h = rowStart; h <= rowEnd; h++) {
             this.currentDisplayLine.h = h;
             this.currentDisplayLine.w = 0;
             this.currentDisplayLine.context = '';
@@ -119,7 +122,7 @@ class Editor {
                 continue;
             }
 
-            for (let w = 0; w <= columns; w++) {
+            for (let w = colStart; w <= colEnd; w++) {
                 this.currentDisplayLine.w = w;
 
                 const hasChanges = this.applyLayouts();
@@ -142,19 +145,30 @@ class Editor {
             lines.push(this.currentDisplayLine.context);
         }
 
+        if (this.status.rows) {
+            const backfill = Array(this.columns.size).join(' ');
+            const statusSize = this.columns.size * this.status.rows;
+            const statusLine = ansi.background.black +
+                ansi.bright + ansi.foreground.white +
+                (this.status.context + backfill).substring(0, statusSize) +
+                ansi.reset;
+
+            lines.push(statusLine);
+        }
+
         this.currentDisplayLine = null;
 
         return lines;
     }
 
     resizeRows(width, height) {
-        this.rows.size = height;
+        this.rows.size = height - this.status.rows;
         this.columns.size = width;
         this.updateSize();
     }
 
     moveTo(direction) {
-        let length = this.file.length - 1;
+        let length = this.file.length - 2;
         if (length < 0) { length = 0; }
 
         this.cursor.y += direction.y;
@@ -182,18 +196,28 @@ class Editor {
         const end = this.rows.start + this.rows.size;
         const { y } = this.cursor;
 
-        if (y + 3 > end && y + 3 < length) { this.rows.start += 1; }
-        if (y - 3 < start && y - 3 >= 0) { this.rows.start -= 1; }
+        if (y + 3 > end && y + 3 < length) {
+            this.rows.start += (y + 3) - end;
+        }
+
+        if (y - 3 < start && y - 3 >= 0) {
+            this.rows.start -= (start - (y - 3));
+        }
     }
 
     updateColumns() {
-        const length = this.file.length - 1;
+        const offset = this.maxPrefixSize() + 3;
+        const length = this.file[this.cursor.y].length + offset;
         const start = this.columns.start;
         const end = this.columns.start + this.columns.size;
         const { x } = this.cursor;
 
-        if (x + 3 > end && x + 3 < length) { this.columns.start += 1; }
-        if (x - 3 < start && x - 3 >= 0) { this.columns.start -= 1; }
+        if (x + offset > end && x + offset < length) {
+            this.columns.start += (x + offset) - end;
+        }
+        if (x - 3 < start && x - 3 >= 0) {
+            this.columns.start -= (x - start);
+        }
     }
 
     processKey(char, key) {
@@ -211,7 +235,7 @@ class Editor {
             return this.moveTo({ x: 0, y: 1 });
         }
 
-        const c = key.name || key.sequence;
+        let c = key.name || key.sequence;
 
         if (c == null) { return; }
 
@@ -238,6 +262,8 @@ class Editor {
         const line = this.file[y];
         this.file[y] = line.slice(0, x) + char + line.slice(x);
         this.cursor.x += char.length;
+
+        this.updateSize();
     }
 
     lineBreak() {
@@ -257,6 +283,8 @@ class Editor {
 
         this.cursor.x = 0;
         this.cursor.y = y + 1;
+
+        this.updateSize();
     }
 
     delete() {
@@ -270,12 +298,13 @@ class Editor {
             this.file[y - 1] += this.file[y];
             this.file.splice(y, 1);
             this.cursor.y = y - 1;
-            return;
+        } else {
+            const line = this.file[y];
+            this.file[y] = line.slice(0, x - 1) + line.slice(x);
+            this.cursor.x = x - 1;
         }
 
-        const line = this.file[y];
-        this.file[y] = line.slice(0, x - 1) + line.slice(x);
-        this.cursor.x = x - 1;
+        this.updateSize();
     }
 
     copy() { }

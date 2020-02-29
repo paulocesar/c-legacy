@@ -4,12 +4,12 @@ const readline = require('readline');
 const Editor = require('./src/editor');
 
 let editor = null;
-global.lastText = '';
 
 let previousLines = [ ];
 
 function displayRender(lines) {
     for (let y = 0; y < process.stdout.rows; y++) {
+        if (lines[y] == null) { continue; }
         if (lines[y] === previousLines[y]) { continue; }
         readline.cursorTo(process.stdout, 0, y);
         process.stdout.write(lines[y]);
@@ -20,13 +20,19 @@ function displayRender(lines) {
 
 function displayRefresh() {
     const lines = editor.getDisplayLines();
-    lines.push(global.lastText);
 
     displayRender(lines);
 }
 
+function displayClear() {
+    previousLines = [ ];
+    readline.cursorTo(process.stdout, 0, 0);
+    readline.clearScreenDown(process.stdout);
+}
+
 function displayResize() {
-    editor.resizeRows(process.stdout.columns, process.stdout.rows - 3);
+    editor.resizeRows(process.stdout.columns, process.stdout.rows - 2);
+    displayClear();
     displayRefresh();
 }
 
@@ -36,15 +42,12 @@ function terminalSetup() {
     process.stdin.write('\x1B[?25l');
     readline.emitKeypressEvents(process.stdin);
 
-    readline.cursorTo(process.stdout, 0, 0);
-    readline.clearScreenDown(process.stdout);
+    displayClear();
 
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
         if (!key) { return; }
-
-        // global.lastText = `char: ${char}, key: ${JSON.stringify(key)}`;
 
         if (key.ctrl) {
             if (key.name === 'c') { return terminalFinish(); }
@@ -67,6 +70,7 @@ function terminalSave() {
 }
 
 function terminalFinish(status = 0) {
+    displayClear();
     process.stdin.write('\x1B[?25h');
     process.exit(status);
 }
