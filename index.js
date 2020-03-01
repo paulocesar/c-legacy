@@ -4,7 +4,20 @@ const readline = require('readline');
 const Editor = require('./src/editor');
 const CommandLine = require('./src/command-line');
 
-let editor = null;
+const grid = [ [ ], [ ], [ ] ];
+
+function gridRows(idx) { return grid[idx].length; }
+
+function gridColumns() {
+    let count = 0;
+
+    for (let i = 0; i < grid.length; i++) {
+        if (grid[i].length > 0) { count++; }
+    }
+
+    return count;
+}
+
 let commandLine = null;
 let mode = 'editor';
 let previousLines = [ ];
@@ -21,8 +34,26 @@ function displayRender(lines) {
 }
 
 function displayRefresh() {
-    displayRender(editor.getDisplayLines()
-        .concat(commandLine.getDisplayLines()));
+    const gColumns = gridColumns();
+    const gLines = [ ];
+
+    for (let c = 0; c < gColumns; c++) {
+        const gRows = gridRows(c);
+
+        let lineIdx = 0;
+        for (let r = 0; r < gRows; r++) {
+            const lines = grid[c][r].getDisplayLines();
+
+            for (let l = 0; l < lines.length; l++) {l
+                if (gLines[lineIdx] == null) { gLines[lineIdx] = ''; }
+                if (c > 0) { gLines[lineIdx] += '|'; }
+                gLines[lineIdx] += lines[l];
+                lineIdx++;
+            }
+        }
+    }
+
+    displayRender(gLines.concat(commandLine.getDisplayLines()));
 }
 
 function displayClear() {
@@ -32,7 +63,24 @@ function displayClear() {
 }
 
 function displayResize() {
-    editor.resizeRows(process.stdout.columns, process.stdout.rows - 2);
+    const maxCols = process.stdout.columns;
+    const maxRows = process.stdout.rows - 2;
+    const gColumns = gridColumns();
+    const colSeparators = gColumns <= 1 ? 0 : gColumns - 1;
+    const cols = gColumns <= 1 ? maxCols :
+        (Math.floor(maxCols / gColumns) - colSeparators);
+
+    for (let c = 0; c < gColumns; c++) {
+        const gRows = gridRows(c);
+        const rows = gRows <= 1 ? maxRows :
+            (Math.floor(maxRows / gRows));
+
+        for (let r = 0; r < gRows; r++) {
+            grid[c][r].resizeRows(cols, rows);
+            grid[0][0].setStatusMessage(`gCols: ${gColumns}, rows: ${gRows}`);
+        }
+    }
+
     commandLine.resizeRows(process.stdout.columns, 1);
     displayClear();
     displayRefresh();
@@ -59,7 +107,7 @@ function terminalSetup() {
         if (mode === 'command') {
             commandLine.processKey(char, key);
         } else {
-            editor.processKey(char, key);
+            grid[0][0].processKey(char, key);
         }
 
         displayRefresh();
@@ -69,12 +117,15 @@ function terminalSetup() {
 }
 
 function terminalLoad(filename) {
-    editor = new Editor(filename);
+    const editor = new Editor(filename);
     editor.on('refresh', () => displayRefresh());
     editor.on('mode:command', () => {
         commandLine.start(editor);
         mode = 'command';
     });
+
+    grid[0].push(editor);
+    grid[1].push(new Editor(filename));
 
     commandLine = new CommandLine();
     commandLine.on('refresh', () => displayRefresh());
