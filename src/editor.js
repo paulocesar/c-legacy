@@ -197,9 +197,7 @@ class Editor extends EventEmitter {
         const end = this.rows.start + this.rows.size;
         const { y } = this.cursor;
 
-        if (y + 3 > end && y + 3 < length) {
-            this.rows.start += (y + 3) - end;
-        }
+        if (y + 3 > end && y + 3 < length) { this.rows.start += (y + 3) - end; }
 
         if (y - 3 < start && y - 3 >= 0) {
             this.rows.start -= (start - (y - 3));
@@ -213,12 +211,8 @@ class Editor extends EventEmitter {
         const end = this.columns.start + this.columns.size;
         const { x } = this.cursor;
 
-        if (x + offset > end && x + offset < length) {
-            this.columns.start += (x + offset) - end;
-        }
-        if (x - 3 < start && x - 3 >= 0) {
-            this.columns.start -= (x - start);
-        }
+        if (x + offset > end) { this.columns.start += (x + offset) - end; }
+        if (x - 3 < start && x - 3 >= 0) { this.columns.start -= (x - start); }
     }
 
     processKey(char, key) {

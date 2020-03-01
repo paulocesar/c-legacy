@@ -77,7 +77,6 @@ function displayResize() {
 
         for (let r = 0; r < gRows; r++) {
             grid[c][r].resizeRows(cols, rows);
-            grid[0][0].setStatusMessage(`gCols: ${gColumns}, rows: ${gRows}`);
         }
     }
 
