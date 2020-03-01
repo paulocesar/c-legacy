@@ -46,6 +46,15 @@ class Editor extends EventEmitter {
         this.status.context = msg;
     }
 
+    setTempStatusMessage(msg) {
+        if (this.msgInterval) { clearInterval(this.msgInterval); }
+
+        this.setStatusMessage(msg);
+
+        const s = 2 * 1000;
+        this.msgInterval = setTimeout(() => this.setDefaultStatusMessage(), s);
+    }
+
     maxPrefixSize() {
         let size = 0;
 
@@ -201,6 +210,7 @@ class Editor extends EventEmitter {
 
     processKey(char, key) {
         if (key.ctrl) {
+            if (key.name === 'x') { return this.emit('mode:command'); }
             if (key.name === 'k') { return this.moveTo({ x: 0, y: -1 }); }
             if (key.name === 'l') { return this.moveTo({ x: 1, y: 0 }); }
             return;
@@ -216,7 +226,7 @@ class Editor extends EventEmitter {
 
         let c = key.name || key.sequence;
 
-        if (c == null) { return; }
+        if (c == null || c === 'escape') { return; }
 
         if (c === 'return') {
             this.lineBreak();

@@ -34,5 +34,14 @@ module.exports = {
                 editor.currentDisplayLine.context = prefix;
             }
         }
+    },
+
+    commands: {
+        save: {
+            shortcut: ':s',
+            async action(editor, params) {
+                return 'TODO: save';
+            }
+        }
     }
 };

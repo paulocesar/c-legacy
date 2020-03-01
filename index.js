@@ -6,8 +6,7 @@ const CommandLine = require('./src/command-line');
 
 let editor = null;
 let commandLine = null;
-
-
+let mode = 'editor';
 let previousLines = [ ];
 
 function displayRender(lines) {
@@ -57,10 +56,11 @@ function terminalSetup() {
             if (key.name === 's') { return terminalSave(); }
         }
 
-        commandLine.processKey(char, key);
-        //editor.processKey(char, key);
-
-        editor.setStatusMessage(`char: ${char}, key: ${JSON.stringify(key)}`);
+        if (mode === 'command') {
+            commandLine.processKey(char, key);
+        } else {
+            editor.processKey(char, key);
+        }
 
         displayRefresh();
     });
@@ -70,7 +70,17 @@ function terminalSetup() {
 
 function terminalLoad(filename) {
     editor = new Editor(filename);
+    editor.on('refresh', () => displayRefresh());
+    editor.on('mode:command', () => {
+        commandLine.start(editor);
+        mode = 'command';
+    });
+
     commandLine = new CommandLine();
+    commandLine.on('refresh', () => displayRefresh());
+    commandLine.on('mode:editor', () => {
+        mode = 'editor';
+    });
 }
 
 function terminalSave() {
