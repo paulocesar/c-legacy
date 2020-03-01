@@ -36,6 +36,8 @@ class Editor extends EventEmitter {
             modifiers.layouts.cursor,
             modifiers.layouts.line80
         ];
+
+        this.keyboard = [ ];
     }
 
     setDefaultStatusMessage() {
@@ -78,6 +80,17 @@ class Editor extends EventEmitter {
         for (let i = this.layouts.length - 1; i >= 0; i--) {
             const m = this.layouts[i];
             if(m(this)) { hasChanges = true; }
+        }
+
+        return hasChanges;
+    }
+
+    applyKeyboard(char, key) {
+        let hasChanges = false;
+
+        for (let i = this.keyboard.length - 1; i >= 0; i--) {
+            const m = this.keyboard[i];
+            if(m(this, char, key)) { hasChanges = true; }
         }
 
         return hasChanges;
@@ -209,6 +222,8 @@ class Editor extends EventEmitter {
     }
 
     processKey(char, key) {
+        if (this.applyKeyboard(char, key)) { return; }
+
         if (key.ctrl) {
             if (key.name === 'x') { return this.emit('mode:command'); }
             if (key.name === 'k') { return this.moveTo({ x: 0, y: -1 }); }
