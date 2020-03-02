@@ -4,7 +4,7 @@ const readline = require('readline');
 const Editor = require('./src/editor');
 const CommandLine = require('./src/command-line');
 
-const grid = [ [ ], [ ], [ ] ];
+let grid = [ [ ], [ ], [ ] ];
 
 function gridRows(idx) { return grid[idx].length; }
 
@@ -16,6 +16,22 @@ function gridColumns() {
     }
 
     return count;
+}
+
+function gridClear() {
+    const oldGrid = grid;
+    grid = [ ];
+    for (let c = 0; c < 3; c++) {
+        const cArray = [ ];
+
+        for (const e of oldGrid[c]) {
+            if (!e.mustRemove) { cArray.push(e); }
+        }
+
+        if (cArray.length) { grid.push(cArray); }
+    }
+
+    while(grid.length < 3) { grid.push([ ]); }
 }
 
 let commandLine = null;
@@ -130,6 +146,8 @@ function terminalLoad(filename) {
     commandLine.on('refresh', () => displayRefresh());
     commandLine.on('mode:editor', () => {
         mode = 'editor';
+        gridClear();
+        displayRefresh();
     });
 }
 
@@ -142,6 +160,7 @@ function terminalFinish(status = 0) {
     process.stdin.write('\x1B[?25h');
     process.exit(status);
 }
+
 function main() {
     terminalLoad(process.argv[2]);
     terminalSetup();

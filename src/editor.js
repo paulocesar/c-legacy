@@ -16,6 +16,8 @@ class Editor extends EventEmitter {
             if (t) { this.file = t.split('\n'); }
         }
 
+        this.mustRemove = false;
+
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
 
@@ -308,6 +310,8 @@ class Editor extends EventEmitter {
     copy() { }
     paste() { }
     replace() { }
+
+    save() { }
 }
 
 module.exports = Editor;
