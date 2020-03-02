@@ -4,10 +4,14 @@ const File = require('./file');
 const modifiers = require('./modifiers');
 
 class Editor extends EventEmitter {
-    constructor(filename) {
+    constructor(file) {
         super();
 
-        this.file = new File(filename);
+        if (file instanceof File) {
+            this.file = file;
+        } else {
+            this.file = new File(file);
+        }
 
         this.mustRemove = false;
 

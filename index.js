@@ -140,7 +140,7 @@ function terminalLoad(filename) {
     });
 
     grid[0].push(editor);
-    grid[1].push(new Editor(filename));
+    //grid[1].push(new Editor(editor.file));
 
     commandLine = new CommandLine();
     commandLine.on('refresh', () => displayRefresh());
