@@ -1,20 +1,13 @@
-const fs = require('fs');
 const EventEmitter = require('events');
 const ansi = require('./ansi-escape-codes');
+const File = require('./file');
 const modifiers = require('./modifiers');
 
 class Editor extends EventEmitter {
     constructor(filename) {
         super();
 
-        this.filename = filename;
-
-        this.file = [ '' ];
-
-        if (this.filename) {
-            const t = fs.readFileSync(this.filename, 'utf8')
-            if (t) { this.file = t.split('\n'); }
-        }
+        this.file = new File(filename);
 
         this.mustRemove = false;
 
@@ -43,7 +36,7 @@ class Editor extends EventEmitter {
     }
 
     setDefaultStatusMessage() {
-        this.status.context = this.filename || '(empty)';
+        this.status.context = this.file.name || '(empty)';
     }
 
     setStatusMessage(msg) {
@@ -114,7 +107,7 @@ class Editor extends EventEmitter {
             this.currentDisplayLine.w = 0;
             this.currentDisplayLine.context = '';
 
-            const line = this.file[h];
+            const line = this.file.content[h];
 
             this.applyPrefixes(h);
 
@@ -159,6 +152,7 @@ class Editor extends EventEmitter {
             lines.push(statusLine);
         }
 
+        this.setStatusMessage(`${this.cursor.x} ${this.cursor.y}`);
         this.currentDisplayLine = null;
 
         return lines;
@@ -171,14 +165,14 @@ class Editor extends EventEmitter {
     }
 
     moveTo(direction) {
-        let length = this.file.length - 2;
+        let length = this.file.length() - 2;
         if (length < 0) { length = 0; }
 
         this.cursor.y += direction.y;
         if (this.cursor.y < 0) { this.cursor.y = 0; }
         if (this.cursor.y > length) { this.cursor.y = length; }
 
-        let rowLength = this.file[this.cursor.y].length || 0;
+        let rowLength = this.file.lineLength(this.cursor.y);
         if (rowLength < 0) { rowLength = 0; }
 
         this.cursor.x += direction.x;
@@ -194,7 +188,7 @@ class Editor extends EventEmitter {
     }
 
     updateRows() {
-        const length = this.file.length - 1;
+        const length = this.file.length() - 1;
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
         const { y } = this.cursor;
@@ -208,7 +202,7 @@ class Editor extends EventEmitter {
 
     updateColumns() {
         const offset = this.maxPrefixSize() + 3;
-        const length = this.file[this.cursor.y].length + offset;
+        const length = this.file.lineLength(this.cursor.y) + offset;
         const start = this.columns.start;
         const end = this.columns.start + this.columns.size;
         const { x } = this.cursor;
@@ -256,31 +250,18 @@ class Editor extends EventEmitter {
     }
 
     add(char) {
-        this.isDirty = true;
-
         const { x, y } = this.cursor;
-        const line = this.file[y];
-        this.file[y] = line.slice(0, x) + char + line.slice(x);
+
+        this.file.add(x, y, char);
         this.cursor.x += char.length;
 
         this.updateSize();
     }
 
     lineBreak() {
-        this.isDirty = true;
-
         const { x, y } = this.cursor;
-        const line = this.file[y];
-        const start = line.slice(0, x);
-        const end = line.slice(x);
 
-        this.file[y] = start;
-
-        const top = this.file.slice(0, y + 1);
-        const bottom = this.file.slice(y + 1);
-
-        this.file = top.concat(end).concat(bottom);
-
+        this.file.lineBreak(x, y);
         this.cursor.x = 0;
         this.cursor.y = y + 1;
 
@@ -291,18 +272,14 @@ class Editor extends EventEmitter {
         const { x, y } = this.cursor;
         if (x === 0 && y === 0) { return; }
 
-        this.isDirty = true;
-
         if (x === 0) {
-            this.cursor.x = this.file[y - 1].length;
-            this.file[y - 1] += this.file[y];
-            this.file.splice(y, 1);
+            this.cursor.x = this.file.lineLength(y - 1);
             this.cursor.y = y - 1;
         } else {
-            const line = this.file[y];
-            this.file[y] = line.slice(0, x - 1) + line.slice(x);
             this.cursor.x = x - 1;
         }
+
+        this.file.delete(x, y);
 
         this.updateSize();
     }
@@ -311,7 +288,9 @@ class Editor extends EventEmitter {
     paste() { }
     replace() { }
 
-    save() { }
+    save() {
+        this.file.save();
+    }
 }
 
 module.exports = Editor;

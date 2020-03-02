@@ -1,5 +1,5 @@
 # c
-tiny code editor
+a tiny code editor
 
 #### TODO
 

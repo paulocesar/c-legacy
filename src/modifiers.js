@@ -25,7 +25,7 @@ module.exports = {
 
     prefixes: {
         lineNumbers: {
-            size(editor) { return `${editor.file.length}`.length + 1; },
+            size(editor) { return `${editor.file.content.length}`.length + 1; },
             action(editor) {
                 const num = `${editor.currentDisplayLine.h}`;
                 const maxSize = this.size(editor);
