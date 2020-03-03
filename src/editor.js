@@ -156,7 +156,6 @@ class Editor extends EventEmitter {
             lines.push(statusLine);
         }
 
-        this.setStatusMessage(`${this.cursor.x} ${this.cursor.y}`);
         this.currentDisplayLine = null;
 
         return lines;
@@ -237,16 +236,12 @@ class Editor extends EventEmitter {
 
         if (c == null || c === 'escape') { return; }
 
-        if (c === 'return') {
-            this.lineBreak();
-            return;
-        }
-
         if (c === 'backspace') {
             this.delete();
             return;
         }
 
+        if (c === 'return') { c = '\n'; }
         if (c === 'space') { c = ' '; }
         if (c === 'tab') { c = '    '; }
 
@@ -256,34 +251,15 @@ class Editor extends EventEmitter {
     add(char) {
         const { x, y } = this.cursor;
 
-        this.file.add(x, y, char);
-        this.cursor.x += char.length;
-
-        this.updateSize();
-    }
-
-    lineBreak() {
-        const { x, y } = this.cursor;
-
-        this.file.lineBreak(x, y);
-        this.cursor.x = 0;
-        this.cursor.y = y + 1;
+        this.cursor = this.file.add(x, y, char);
 
         this.updateSize();
     }
 
     delete() {
         const { x, y } = this.cursor;
-        if (x === 0 && y === 0) { return; }
 
-        if (x === 0) {
-            this.cursor.x = this.file.lineLength(y - 1);
-            this.cursor.y = y - 1;
-        } else {
-            this.cursor.x = x - 1;
-        }
-
-        this.file.delete(x, y);
+        this.cursor = this.file.delete(x, y);
 
         this.updateSize();
     }
