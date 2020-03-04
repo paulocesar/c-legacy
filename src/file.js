@@ -16,22 +16,29 @@ class File {
 
     save() { }
 
-    recordAction(action, x, y, chars) {
-        const data = { action, x, y };
+    recordAction(action, start, end, chars) {
+        const data = { action, start, end };
 
         if (chars != null) { data.chars = chars; }
+
+        if (this.actionIndex > 0) {
+            this.actions = this.actions.splice(this.actionIndex);
+            this.actionIndex = 0;
+        }
 
         this.actions.unshift(data);
     }
 
     undo() {
         const data = this.actions[this.actionIndex];
+        debugger;
 
         if (!data) { return false; }
 
         this.actionIndex++;
 
-        const { action, x, y, chars } = data;
+        const { action, end, chars } = data;
+        const { x, y } = end;
 
         if (action === 'add') { return this.delete(x, y, false); }
 
@@ -47,7 +54,8 @@ class File {
 
         this.actionIndex--;
 
-        const { action, x, y, chars } = data;
+        const { action, start, chars } = data;
+        const { x, y } = start;
 
         if (action === 'add') { return this.add(x, y, chars, false); }
 
@@ -74,7 +82,7 @@ class File {
             pos = this._addChars(x, y, chars);
         }
 
-        if (mustRecord) { this.recordAction('add', pos, chars); }
+        if (mustRecord) { this.recordAction('add', { x, y }, pos, chars); }
 
         return pos;
     }
@@ -94,7 +102,7 @@ class File {
             pos = this._removeChars(x, y, 1);
         }
 
-        if (mustRecord) { this.recordAction('delete', pos, chars); }
+        if (mustRecord) { this.recordAction('delete', { x, y }, pos, chars); }
 
         return pos;
     }

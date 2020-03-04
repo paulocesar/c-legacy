@@ -268,8 +268,22 @@ class Editor extends EventEmitter {
         this.file.save();
     }
 
-    undo() { }
-    redo() { }
+    undo() {
+        const pos = this.file.undo();
+
+        if (!pos) { return this.setTempStatusMessage('Cannot undo'); }
+
+        this.cursor = pos;
+    }
+
+    redo() {
+        const pos = this.file.redo();
+
+        if (!pos) { return this.setTempStatusMessage('Cannot redo'); }
+
+        this.cursor = pos;
+    }
+
 }
 
 module.exports = Editor;
