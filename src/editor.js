@@ -102,7 +102,8 @@ class Editor extends EventEmitter {
         const rowEnd = rowStart + this.rows.size;
         const prefixSize = this.maxPrefixSize();
         const colStart = this.columns.start;
-        const colEnd = colStart + this.columns.size - prefixSize - 1;
+        const cols = this.columns.size - prefixSize - 1;
+        const colEnd = colStart + cols;
 
         const lines = [ ];
 
@@ -118,7 +119,8 @@ class Editor extends EventEmitter {
             this.applyPrefixes(h);
 
             if (line === undefined) {
-                this.currentDisplayLine.context += '~';
+                const whitespace = Array(cols + 1).join(' ');
+                this.currentDisplayLine.context += '~' + whitespace;
                 lines.push(this.currentDisplayLine.context);
                 continue;
             }

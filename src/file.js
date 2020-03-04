@@ -88,7 +88,7 @@ class File {
     }
 
     delete(x, y, mustRecord = true) {
-        if (!x && !y) { return; }
+        if (!x && !y) { return { x, y }; }
 
         this.isDirty = true;
         let chars = null;
