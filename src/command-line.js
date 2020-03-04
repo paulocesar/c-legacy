@@ -10,7 +10,7 @@ class CommandLine extends Editor {
     }
 
     start(editor) {
-        this.file[0] = '> ';
+        this.file.content[0] = '> ';
         this.cursor.x = 2;
         this.editor = editor;
     }
@@ -19,12 +19,12 @@ class CommandLine extends Editor {
         if (key.ctrl) {
             if (key.name === 'x') { return this.emit('mode:editor'); }
             if (key.name === 'k') { return this.prevCmd(); }
-            if (key.name === 'l') { return this.moveTo({ x: 1, y: 0 }); }
+            if (key.name === 'l') { return this.moveOffset({ x: 1, y: 0 }); }
             return;
         }
 
         if (key.sequence === '\b' && key.name === 'backspace') {
-            return this.moveTo({ x: -1, y: 0 });
+            return this.moveOffset({ x: -1, y: 0 });
         }
 
         if (key.sequence === '\n' && key.name === 'enter') {
@@ -33,7 +33,7 @@ class CommandLine extends Editor {
 
         let c = key.name || key.sequence;
 
-        if (c == null || c === 'escape') { return; }
+        if (c == null || c === 'escape' || c === 'tab') { return; }
 
         if (c === 'return') {
             this.execute();
@@ -46,7 +46,6 @@ class CommandLine extends Editor {
         }
 
         if (c === 'space') { c = ' '; }
-        if (c === 'tab') { c = '    '; }
 
         this.add(c);
     }
@@ -55,7 +54,7 @@ class CommandLine extends Editor {
     nextCmd() { }
 
     async execute() {
-        const params = this.file[0].trim().split(/\s+/);
+        const params = this.file.content[0].trim().split(/\s+/);
 
         // removes command char '>'
         params.shift();
@@ -87,7 +86,7 @@ class CommandLine extends Editor {
     }
 
     switchToEditMode() {
-        this.file[0] = '';
+        this.file.content[0] = '';
         this.cursor.x = 0;
         this.cursor.y = 0;
         this.emit('mode:editor');

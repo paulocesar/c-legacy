@@ -36,7 +36,9 @@ class Editor extends EventEmitter {
             modifiers.layouts.line80
         ];
 
-        this.keyboard = [ ];
+        this.keyboard = [
+            modifiers.keyboard.default
+        ];
     }
 
     setDefaultStatusMessage() {
@@ -167,18 +169,25 @@ class Editor extends EventEmitter {
         this.updateSize();
     }
 
-    moveTo(direction) {
+    moveOffset(direction) {
+        this.moveTo({
+            x: this.cursor.x + direction.x,
+            y: this.cursor.y + direction.y
+        });
+    }
+
+    moveTo(position) {
         let length = this.file.length() - 2;
         if (length < 0) { length = 0; }
 
-        this.cursor.y += direction.y;
+        this.cursor.y = position.y;
         if (this.cursor.y < 0) { this.cursor.y = 0; }
         if (this.cursor.y > length) { this.cursor.y = length; }
 
         let rowLength = this.file.lineLength(this.cursor.y);
         if (rowLength < 0) { rowLength = 0; }
 
-        this.cursor.x += direction.x;
+        this.cursor.x = position.x;
         if (this.cursor.x < 0) { this.cursor.x = 0; }
         if (this.cursor.x > rowLength) { this.cursor.x = rowLength; }
 
@@ -215,22 +224,9 @@ class Editor extends EventEmitter {
     }
 
     processKey(char, key) {
+        // this.setStatusMessage( `char: ${char}, key: ${JSON.stringify(key)}`);
+
         if (this.applyKeyboard(char, key)) { return; }
-
-        if (key.ctrl) {
-            if (key.name === 'x') { return this.emit('mode:command'); }
-            if (key.name === 'k') { return this.moveTo({ x: 0, y: -1 }); }
-            if (key.name === 'l') { return this.moveTo({ x: 1, y: 0 }); }
-            return;
-        }
-
-        if (key.sequence === '\b' && key.name === 'backspace') {
-            return this.moveTo({ x: -1, y: 0 });
-        }
-
-        if (key.sequence === '\n' && key.name === 'enter') {
-            return this.moveTo({ x: 0, y: 1 });
-        }
 
         let c = key.name || key.sequence;
 
@@ -271,6 +267,9 @@ class Editor extends EventEmitter {
     save() {
         this.file.save();
     }
+
+    undo() { }
+    redo() { }
 }
 
 module.exports = Editor;
