@@ -2,7 +2,8 @@ module.exports = {
     reset: '\x1b[0m',
 
     editorBackground: '\x1b[48;5;78m',
-    cursor: '\x1b[40m\x1b[1m\x1b[37m',
+    cursor: '\x1b[40m\x1b[1m\x1b[37m\x1b[5m',
+    selection: '\x1b[40m\x1b[1m\x1b[37m',
     line80: '\x1b[46m\x1b[1m\x1b[31m',
 
     bright: '\x1b[1m',

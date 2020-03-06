@@ -37,6 +37,7 @@ function gridClear() {
 let commandLine = null;
 let mode = 'editor';
 let previousLines = [ ];
+let selectionBuffer = '';
 
 function displayRender(lines) {
     for (let y = 0; y < process.stdout.rows; y++) {
@@ -137,6 +138,9 @@ function terminalLoad(filename) {
     editor.on('mode:command', () => {
         commandLine.start(editor);
         mode = 'command';
+    });
+    editor.on('selection:end', () => {
+        selectionBuffer = editor.getSelectionBuffer();
     });
 
     grid[0].push(editor);

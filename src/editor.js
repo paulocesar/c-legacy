@@ -33,6 +33,7 @@ class Editor extends EventEmitter {
 
         this.layouts = [
             modifiers.layouts.cursor,
+            modifiers.layouts.selection,
             modifiers.layouts.line80
         ];
 
@@ -260,6 +261,76 @@ class Editor extends EventEmitter {
         this.cursor = this.file.delete(x, y);
 
         this.updateSize();
+    }
+
+    selectionStart() {
+        this.selectionMode = true;
+        this.selection.start.x = this.cursor.x;
+        this.selection.start.y = this.cursor.y;
+        this.selection.end.x = this.cursor.x;
+        this.selection.end.y = this.cursor.y;
+
+        this.emit('selection:start');
+    }
+
+    selectionCancel() {
+        this.selectionMode = false;
+        this.emit('selection:cancel');
+    }
+
+    selectionEnd() {
+        this.selection.end.x = this.cursor.x;
+        this.selection.end.y = this.cursor.y;
+
+        if (this.isBefore(this.selection.end, this.selection.start)) {
+            const temp = this.selection.start;
+            this.selection.start = this.selection.end;
+            this.selection.end = temp;
+        }
+
+        this.selectionMode = false;
+        this.emit('selection:end');
+    }
+
+    inSelection(p) {
+        let start = this.selection.start;
+        let end = this.cursor;
+        if (this.isBefore(this.cursor, this.selection.start)) {
+            start = this.cursor;
+            end = this.selection.start;
+        }
+
+        if (p.y < start.y || p.y > end.y) { return false; }
+        if (this.file.content[p.y].length - 1 < p.x) { return false; }
+        if (p.y === start.y && p.x < start.x) { return false; }
+        if (p.y === end.y && p.x > end.x) { return false; }
+        return true;
+
+        return p.x >= start.x && p.x <= end.x &&
+            p.y >= start.y && p.y <= end.y;
+    }
+
+    getSelectionBuffer() {
+        const { start, end } = this.selection;
+        let buf = '';
+
+        for (let y = start.y; y <= end.y; y++) {
+            if (y !== start.y) { buf += '\n'; }
+
+            const l = this.file.content[y];
+            const startX = y === start.y ? start.x : 0;
+            const endX = y === end.y ? end.x : l.length - 1;
+
+            for (let x = startX; x <= endX; x++) {
+                buf += l[x];
+            }
+        }
+
+        return buf;
+    }
+
+    isBefore(p1, p2) {
+        return p1.y < p2.y || (p1.y === p2.y && p1.x < p2.x);
     }
 
     copy() { }

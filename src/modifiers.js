@@ -2,14 +2,6 @@ const ansi = require('./ansi-escape-codes');
 
 module.exports = {
     layouts: {
-        line80(editor) {
-            const { w } = editor.currentDisplayLine;
-            if (w !== 79) { return false; }
-
-            editor.currentDisplayLine.context += ansi.line80;
-            return true;
-        },
-
         cursor(editor) {
             const { w, h } = editor.currentDisplayLine;
 
@@ -19,6 +11,25 @@ module.exports = {
 
             editor.currentDisplayLine.context += ansi.cursor;
 
+            return true;
+        },
+
+        line80(editor) {
+            const { w } = editor.currentDisplayLine;
+            if (w !== 79) { return false; }
+
+            editor.currentDisplayLine.context += ansi.line80;
+            return true;
+        },
+
+        selection(editor) {
+            const { w, h } = editor.currentDisplayLine;
+            const mustShow = editor.selectionMode &&
+                editor.inSelection({ x: w, y: h })
+
+            if (!mustShow) { return false; }
+
+            editor.currentDisplayLine.context += ansi.selection;
             return true;
         }
     },
@@ -47,9 +58,24 @@ module.exports = {
 
     keyboard: {
         default(editor, char, key) {
+            editor.setStatusMessage(`${editor.selectionMode} ${JSON.stringify(editor.selection)}`);
             if (key.ctrl) {
                 if (key.name === 'x') {
+                    if (editor.selectionMode) {
+                        editor.selectionCancel();
+                        return true;
+                    }
                     editor.emit('mode:command');
+                    return true;
+                }
+
+                if (key.name === 'v') {
+                    if (!editor.selectionMode) {
+                        editor.selectionStart();
+                        return true;
+                    }
+
+                    editor.selectionEnd();
                     return true;
                 }
 
@@ -62,6 +88,8 @@ module.exports = {
                     editor.moveOffset({ x: 1, y: 0 });
                     return true;
                 }
+
+                if (editor.selectionMode) { return true; }
 
                 if (key.name === 'u') {
                     editor.undo();
@@ -85,6 +113,8 @@ module.exports = {
                 editor.moveOffset({ x: 0, y: 1 });
                 return true;
             }
+
+            if (editor.selectionMode) { return true; }
 
             return false;
         }
