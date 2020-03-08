@@ -139,8 +139,12 @@ function terminalLoad(filename) {
         commandLine.start(editor);
         mode = 'command';
     });
-    editor.on('selection:end', () => {
+    editor.on('selection:buffer', () => {
         selectionBuffer = editor.getSelectionBuffer();
+    });
+
+    editor.on('selection:paste', () => {
+        editor.paste(selectionBuffer);
     });
 
     grid[0].push(editor);

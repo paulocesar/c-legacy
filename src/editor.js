@@ -269,13 +269,10 @@ class Editor extends EventEmitter {
         this.selection.start.y = this.cursor.y;
         this.selection.end.x = this.cursor.x;
         this.selection.end.y = this.cursor.y;
-
-        this.emit('selection:start');
     }
 
     selectionCancel() {
         this.selectionMode = false;
-        this.emit('selection:cancel');
     }
 
     selectionEnd() {
@@ -289,7 +286,17 @@ class Editor extends EventEmitter {
         }
 
         this.selectionMode = false;
-        this.emit('selection:end');
+    }
+
+    selectionDelete() {
+        const { start, end } = this.selection;
+
+        this.cursor.x = end.x;
+        this.cursor.y = end.y;
+
+        while(this.cursor.x !== start.x || this.cursor.y !== start.y) {
+            this.delete();
+        }
     }
 
     inSelection(p) {
@@ -333,13 +340,27 @@ class Editor extends EventEmitter {
         return p1.y < p2.y || (p1.y === p2.y && p1.x < p2.x);
     }
 
-    copy() { }
-    paste() { }
-    replace() { }
-
-    save() {
-        this.file.save();
+    copy() {
+        this.selectionEnd();
+        this.emit('selection:buffer', this.getSelectionBuffer());
     }
+
+    cut() {
+        this.selectionEnd();
+        this.emit('selection:buffer', this.getSelectionBuffer());
+        this.selectionDelete();
+    }
+
+    paste(buffer) {
+        if (this.selectionMode) {
+            this.selectionEnd();
+            this.selectionDelete();
+        }
+
+        for(const c of buffer) { this.add(c); }
+    }
+
+    save() { this.file.save(); }
 
     undo() {
         const pos = this.file.undo();

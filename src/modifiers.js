@@ -58,24 +58,33 @@ module.exports = {
 
     keyboard: {
         default(editor, char, key) {
-            editor.setStatusMessage(`${editor.selectionMode} ${JSON.stringify(editor.selection)}`);
+            editor.setStatusMessage(`${JSON.stringify(key)}`);
             if (key.ctrl) {
                 if (key.name === 'x') {
-                    if (editor.selectionMode) {
-                        editor.selectionCancel();
-                        return true;
-                    }
                     editor.emit('mode:command');
                     return true;
                 }
 
-                if (key.name === 'v') {
-                    if (!editor.selectionMode) {
-                        editor.selectionStart();
-                        return true;
-                    }
+                if (key.name === 'y' && editor.selectionMode) {
+                    editor.copy();
+                    return true;
+                }
 
-                    editor.selectionEnd();
+                if (key.name === 't' && editor.selectionMode) {
+                    editor.cut();
+                    return true;
+                }
+
+                if (key.name === 'p') {
+                    editor.emit('selection:paste');
+                    return true;
+                }
+
+                if (key.name === 'v') {
+                    editor.selectionMode ?
+                        editor.selectionEnd() :
+                        editor.selectionStart();
+
                     return true;
                 }
 
