@@ -61,10 +61,12 @@ class CommandLine extends Editor {
 
         const cmd = params.shift();
         let action = null;
+        let mustLock = false;
 
         for (const [ key, value ] of Object.entries(modifiers.commands)) {
             if (key === cmd || value.shortcut === cmd) {
                 action = value.action;
+                mustLock = value.lock || mustLock;
                 break;
             }
         }
@@ -74,11 +76,16 @@ class CommandLine extends Editor {
             return this.switchToEditMode();
         }
 
-        this.lock = true;
-        const msg = await action(this.editor, params);
-        this.lock = false;
+        if (mustLock) { this.emit('lock'); }
 
-        if (msg) { this.editor.setTempStatusMessage(msg); }
+        try {
+            await action(this.editor, params);
+        } catch(e) {
+            this.editor.setTempStatusMessage('command error');
+        }
+
+        if (mustLock) { this.emit('unlock'); }
+
 
         this.switchToEditMode();
 

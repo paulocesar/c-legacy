@@ -38,6 +38,7 @@ let commandLine = null;
 let mode = 'editor';
 let previousLines = [ ];
 let selectionBuffer = '';
+let globalLock = false;
 
 function displayRender(lines) {
     for (let y = 0; y < process.stdout.rows; y++) {
@@ -113,7 +114,7 @@ function terminalSetup() {
     displayRefresh();
 
     process.stdin.on('keypress', function (char, key) {
-        if (!key) { return; }
+        if (globalLock || !key) { return; }
 
         if (key.ctrl) {
             if (key.name === 'c') { return terminalFinish(); }
@@ -151,11 +152,21 @@ function terminalLoad(filename) {
     //grid[1].push(new Editor(editor.file));
 
     commandLine = new CommandLine();
+
     commandLine.on('refresh', () => displayRefresh());
+
     commandLine.on('mode:editor', () => {
         mode = 'editor';
         gridClear();
         displayRefresh();
+    });
+
+    commandLine.on('lock', () => {
+        globalLock = true;
+    });
+
+    commandLine.on('unlock', () => {
+        globalLock = false;
     });
 }
 
