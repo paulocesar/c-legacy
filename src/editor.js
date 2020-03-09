@@ -151,8 +151,8 @@ class Editor extends EventEmitter {
 
         if (this.status.rows) {
             const backfill = Array(this.columns.size).join(' ');
-            const symbol = this.isDirty ? '*' : ' ';
-            const msg = symbol + this.status.context + backfill;
+            const symbol = this.file.isDirty ? '*' : ' ';
+            const msg = `${symbol} ${this.status.context} ${backfill}`;
             const statusSize = this.columns.size * this.status.rows;
             const statusLine = ansi.background.white +
                 ansi.foreground.black + (msg).substring(0, statusSize) +
@@ -368,7 +368,7 @@ class Editor extends EventEmitter {
         for(const c of buffer) { this.add(c); }
     }
 
-    save() { this.file.save(); }
+    async save() { this.file.save(); }
 
     undo() {
         const pos = this.file.undo();

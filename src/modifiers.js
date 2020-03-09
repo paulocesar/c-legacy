@@ -49,9 +49,17 @@ module.exports = {
 
     commands: {
         save: {
-            shortcut: ':s',
+            shortcut: 's',
             async action(editor, params) {
-                return 'TODO: save';
+                let msg = 'saved!';
+                try {
+                    await editor.file.save();
+                } catch(e) {
+                    msg = 'cannot save!';
+                }
+
+                editor.setTempStatusMessage(msg);
+                editor.emit('refresh');
             }
         }
     },

@@ -1,4 +1,7 @@
 const fs = require('fs');
+const util = require('util');
+
+const writeFile = util.promisify(fs.writeFile);
 
 class File {
     constructor(filename) {
@@ -14,7 +17,10 @@ class File {
         this.actionIndex = 0;
     }
 
-    save() { }
+    async save() {
+        await writeFile(this.name, this.content.join('\n'));
+        this.isDirty = false;
+    }
 
     recordAction(action, start, end, chars) {
         const data = { action, start, end };
