@@ -6,6 +6,7 @@ const writeFile = util.promisify(fs.writeFile);
 class File {
     constructor(filename) {
         this.name = filename;
+        this.isReadOnly = false;
         this.content = [ '' ];
 
         if (this.name) {
@@ -18,11 +19,15 @@ class File {
     }
 
     async save() {
+        if (this.isReadOnly) { return; }
+
         await writeFile(this.name, this.content.join('\n'));
         this.isDirty = false;
     }
 
     recordAction(action, start, end, chars) {
+        if (this.isReadOnly) { return; }
+
         const data = { action, start, end };
 
         if (chars != null) { data.chars = chars; }
@@ -36,6 +41,8 @@ class File {
     }
 
     undo() {
+        if (this.isReadOnly) { return; }
+
         const data = this.actions[this.actionIndex];
 
         if (!data) { return false; }
@@ -53,6 +60,8 @@ class File {
     }
 
     redo() {
+        if (this.isReadOnly) { return; }
+
         const data = this.actions[this.actionIndex - 1];
 
         if (!data) { return false; }
@@ -78,6 +87,8 @@ class File {
     }
 
     add(x, y, chars, mustRecord = true) {
+        if (this.isReadOnly) { return; }
+
         this.isDirty = true;
 
         let pos = null;
@@ -93,6 +104,8 @@ class File {
     }
 
     delete(x, y, mustRecord = true) {
+        if (this.isReadOnly) { return; }
+
         if (!x && !y) { return { x, y }; }
 
         this.isDirty = true;
