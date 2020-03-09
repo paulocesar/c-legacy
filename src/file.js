@@ -31,7 +31,6 @@ class File {
 
     undo() {
         const data = this.actions[this.actionIndex];
-        debugger;
 
         if (!data) { return false; }
 

@@ -220,15 +220,13 @@ class Editor extends EventEmitter {
         const length = this.file.lineLength(this.cursor.y) + offset;
         const start = this.columns.start;
         const end = this.columns.start + this.columns.size;
-        const { x } = this.cursor;
+        const { x } = this.getCursor();
 
         if (x + offset > end) { this.columns.start += (x + offset) - end; }
         if (x - 3 < start && x - 3 >= 0) { this.columns.start -= (x - start); }
     }
 
     processKey(char, key) {
-        // this.setStatusMessage( `char: ${char}, key: ${JSON.stringify(key)}`);
-
         if (this.applyKeyboard(char, key)) { return; }
 
         let c = key.name || key.sequence;
@@ -247,28 +245,36 @@ class Editor extends EventEmitter {
         this.add(c);
     }
 
-    add(char) {
-        const { x, y } = this.cursor;
+    setCursor(pos) {
+        this.cursor.x = pos.x;
+        this.cursor.y = pos.y;
+    }
 
-        this.cursor = this.file.add(x, y, char);
+    getCursor() { return { x: this.cursor.x, y: this.cursor.y }; }
+
+    add(char) {
+        const { x, y } = this.getCursor();
+
+        this.setCursor(this.file.add(x, y, char));
 
         this.updateSize();
     }
 
     delete() {
-        const { x, y } = this.cursor;
+        const { x, y } = this.getCursor();
 
-        this.cursor = this.file.delete(x, y);
-
+        this.setCursor(this.file.delete(x, y));
+        this.setStatusMessage(this.file.message);
         this.updateSize();
     }
 
     selectionStart() {
+        const cursor = this.getCursor();
         this.selectionMode = true;
-        this.selection.start.x = this.cursor.x;
-        this.selection.start.y = this.cursor.y;
-        this.selection.end.x = this.cursor.x;
-        this.selection.end.y = this.cursor.y;
+        this.selection.start.x = cursor.x;
+        this.selection.start.y = cursor.y;
+        this.selection.end.x = cursor.x;
+        this.selection.end.y = cursor.y;
     }
 
     selectionCancel() {
@@ -276,8 +282,9 @@ class Editor extends EventEmitter {
     }
 
     selectionEnd() {
-        this.selection.end.x = this.cursor.x;
-        this.selection.end.y = this.cursor.y;
+        const cursor = this.getCursor();
+        this.selection.end.x = cursor.x;
+        this.selection.end.y = cursor.y;
 
         if (this.isBefore(this.selection.end, this.selection.start)) {
             const temp = this.selection.start;
@@ -291,8 +298,7 @@ class Editor extends EventEmitter {
     selectionDelete() {
         const { start, end } = this.selection;
 
-        this.cursor.x = end.x;
-        this.cursor.y = end.y;
+        this.setCursor(end);
 
         while(this.cursor.x !== start.x || this.cursor.y !== start.y) {
             this.delete();
@@ -301,9 +307,9 @@ class Editor extends EventEmitter {
 
     inSelection(p) {
         let start = this.selection.start;
-        let end = this.cursor;
-        if (this.isBefore(this.cursor, this.selection.start)) {
-            start = this.cursor;
+        let end = this.getCursor();
+        if (this.isBefore(this.getCursor(), this.selection.start)) {
+            start = this.getCursor();
             end = this.selection.start;
         }
 
@@ -326,7 +332,9 @@ class Editor extends EventEmitter {
 
             const l = this.file.content[y];
             const startX = y === start.y ? start.x : 0;
-            const endX = y === end.y ? end.x : l.length - 1;
+            const maxLength = l.length - 1;
+            let endX = y === end.y ? end.x - 1  : maxLength;
+            if (endX > maxLength) { endX = maxLength; }
 
             for (let x = startX; x <= endX; x++) {
                 buf += l[x];
@@ -367,7 +375,7 @@ class Editor extends EventEmitter {
 
         if (!pos) { return this.setTempStatusMessage('Cannot undo'); }
 
-        this.cursor = pos;
+        this.setCursor(pos);
     }
 
     redo() {
@@ -375,7 +383,7 @@ class Editor extends EventEmitter {
 
         if (!pos) { return this.setTempStatusMessage('Cannot redo'); }
 
-        this.cursor = pos;
+        this.setCursor(pos);
     }
 
 }

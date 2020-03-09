@@ -58,7 +58,7 @@ module.exports = {
 
     keyboard: {
         default(editor, char, key) {
-            editor.setStatusMessage(`${JSON.stringify(key)}`);
+            // editor.setStatusMessage(`${JSON.stringify(key)}`);
             if (key.ctrl) {
                 if (key.name === 'x') {
                     editor.emit('mode:command');
