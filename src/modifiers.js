@@ -4,10 +4,9 @@ module.exports = {
     layouts: {
         cursor(editor) {
             const { w, h } = editor.currentDisplayLine;
+            const { x, y } = editor.getCursor();
 
-            if (editor.cursor.x !== w || editor.cursor.y !== h) {
-                return false;
-            }
+            if (x !== w || y !== h) { return false; }
 
             editor.currentDisplayLine.context += ansi.cursor;
 

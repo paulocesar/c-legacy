@@ -23,7 +23,9 @@ class Editor extends EventEmitter {
         this.status = { rows: 1, context: '' };
         this.setDefaultStatusMessage();
 
-        this.cursor = { x: 0, y: 0 };
+        this._lastCursorX = 0;
+        this._cursor = { x: 0, y: 0 };
+        this._lastCursor = { x: 0, y: 0 };
         this.selection = {
             start: { x: 0, y: 0 },
             end: { x: 0, y: 0 }
@@ -200,8 +202,8 @@ class Editor extends EventEmitter {
 
     moveOffset(direction) {
         this.moveTo({
-            x: this.cursor.x + direction.x,
-            y: this.cursor.y + direction.y
+            x: this.getCursor().x + direction.x,
+            y: this.getCursor().y + direction.y
         });
     }
 
@@ -209,16 +211,30 @@ class Editor extends EventEmitter {
         let length = this.file.length() - 2;
         if (length < 0) { length = 0; }
 
-        this.cursor.y = position.y;
-        if (this.cursor.y < 0) { this.cursor.y = 0; }
-        if (this.cursor.y > length) { this.cursor.y = length; }
+        const cursor = this.getCursor();
 
-        let rowLength = this.file.lineLength(this.cursor.y);
+        cursor.y = position.y;
+        if (cursor.y < 0) { cursor.y = 0; }
+        if (cursor.y > length) { cursor.y = length; }
+
+        let rowLength = this.file.lineLength(cursor.y);
         if (rowLength < 0) { rowLength = 0; }
 
-        this.cursor.x = position.x;
-        if (this.cursor.x < 0) { this.cursor.x = 0; }
-        if (this.cursor.x > rowLength) { this.cursor.x = rowLength; }
+        const mustTrackPosition = cursor.x !== position.x;
+
+        if (cursor.x !== position.x) {
+            this._lastCursorX = cursor.x = position.x;
+        } else {
+            cursor.x = this._lastCursorX;
+        }
+
+        if (cursor.x < 0) { cursor.x = 0; }
+        if (cursor.x > rowLength) { cursor.x = rowLength; }
+
+        // setCursor will override the _lastCursorX
+        // this is the only situation that we want to avoid it
+        this._cursor.x = cursor.x;
+        this._cursor.y = cursor.y;
 
         this.updateSize();
     }
@@ -232,7 +248,7 @@ class Editor extends EventEmitter {
         const length = this.file.length() - 1;
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
-        const { y } = this.cursor;
+        const { y } = this.getCursor();
 
         if (y + 3 > end && y + 3 < length) { this.rows.start += (y + 3) - end; }
 
@@ -243,7 +259,7 @@ class Editor extends EventEmitter {
 
     updateColumns() {
         const offset = this.maxPrefixSize() + 3;
-        const length = this.file.lineLength(this.cursor.y) + offset;
+        const length = this.file.lineLength(this.getCursor().y) + offset;
         const start = this.columns.start;
         const end = this.columns.start + this.columns.size;
         const { x } = this.getCursor();
@@ -272,11 +288,11 @@ class Editor extends EventEmitter {
     }
 
     setCursor(pos) {
-        this.cursor.x = pos.x;
-        this.cursor.y = pos.y;
+        this._lastCursorX = this._cursor.x = pos.x;
+        this._cursor.y = pos.y;
     }
 
-    getCursor() { return { x: this.cursor.x, y: this.cursor.y }; }
+    getCursor() { return { x: this._cursor.x, y: this._cursor.y }; }
 
     add(char) {
         const { x, y } = this.getCursor();
@@ -324,8 +340,9 @@ class Editor extends EventEmitter {
         const { start, end } = this.selection;
 
         this.setCursor(end);
+        const cursor = this.getCursor();
 
-        while(this.cursor.x !== start.x || this.cursor.y !== start.y) {
+        while(cursor.x !== start.x || cursor.y !== start.y) {
             this.delete();
         }
     }

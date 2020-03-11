@@ -11,7 +11,7 @@ class CommandLine extends Editor {
 
     start(editor) {
         this.file.content[0] = '> ';
-        this.cursor.x = 2;
+        this.setCursor({ x: 2, y: 0 });
         this.editor = editor;
     }
 
@@ -94,8 +94,7 @@ class CommandLine extends Editor {
 
     switchToEditMode() {
         this.file.content[0] = '';
-        this.cursor.x = 0;
-        this.cursor.y = 0;
+        this.setCursor({ x: 0, y: 0 });
         this.emit('mode:editor');
     }
 };
