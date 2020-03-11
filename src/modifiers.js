@@ -24,7 +24,7 @@ module.exports = {
 
         selection(editor) {
             const { w, h } = editor.currentDisplayLine;
-            const mustShow = editor.selectionMode &&
+            const mustShow = editor.isMode('selection') &&
                 editor.inSelection({ x: w, y: h })
 
             if (!mustShow) { return false; }
@@ -59,7 +59,6 @@ module.exports = {
                 }
 
                 editor.setTempStatusMessage(msg);
-                editor.emit('refresh');
             }
         }
     },
@@ -69,27 +68,27 @@ module.exports = {
             // editor.setStatusMessage(`${JSON.stringify(key)}`);
             if (key.ctrl) {
                 if (key.name === 'x') {
-                    editor.emit('mode:command');
+                    editor.setMode('command');
                     return true;
                 }
 
-                if (key.name === 'y' && editor.selectionMode) {
+                if (key.name === 'y' && editor.isMode('selection')) {
                     editor.copy();
                     return true;
                 }
 
-                if (key.name === 't' && editor.selectionMode) {
+                if (key.name === 't' && editor.isMode('selection')) {
                     editor.cut();
                     return true;
                 }
 
                 if (key.name === 'p') {
-                    editor.emit('selection:paste');
+                    editor.paste();
                     return true;
                 }
 
                 if (key.name === 'v') {
-                    editor.selectionMode ?
+                    editor.isMode('selection') ?
                         editor.selectionEnd() :
                         editor.selectionStart();
 
@@ -106,7 +105,7 @@ module.exports = {
                     return true;
                 }
 
-                if (editor.selectionMode) { return true; }
+                if (editor.isMode('selection')) { return true; }
 
                 if (key.name === 'u') {
                     editor.undo();
@@ -131,7 +130,7 @@ module.exports = {
                 return true;
             }
 
-            if (editor.selectionMode) { return true; }
+            if (editor.isMode('selection')) { return true; }
 
             return false;
         }

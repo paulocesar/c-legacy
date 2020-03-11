@@ -136,16 +136,14 @@ function terminalSetup() {
 function terminalLoad(filename) {
     const editor = new Editor(filename);
     editor.on('refresh', () => displayRefresh());
-    editor.on('mode:command', () => {
-        commandLine.start(editor);
-        mode = 'command';
+    editor.on('mode', (m) => {
+        if (m === 'command' ) { commandLine.start(editor); }
+        mode = m;
     });
-    editor.on('selection:buffer', () => {
-        selectionBuffer = editor.getSelectionBuffer();
-    });
+    editor.on('selection:buffer', (b) => { selectionBuffer = b; });
 
     editor.on('selection:paste', () => {
-        editor.paste(selectionBuffer);
+        editor.pasteBuffer(selectionBuffer);
     });
 
     grid[0].push(editor);

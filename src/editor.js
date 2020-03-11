@@ -13,11 +13,13 @@ class Editor extends EventEmitter {
             this.file = new File(file);
         }
 
+        this.mode = 'edit';
         this.mustRemove = false;
 
         this.columns = { start: 0, size: 0 };
         this.rows = { start: 0, size: 0 };
 
+        this.msgInterval = null;
         this.status = { rows: 1, context: '' };
         this.setDefaultStatusMessage();
 
@@ -43,20 +45,44 @@ class Editor extends EventEmitter {
     }
 
     setDefaultStatusMessage() {
-        this.status.context = this.file.name || '(empty)';
+        if (this.msgInterval) { return; }
+        const file = this.file.name || '(empty)';
+        const mode = this.mode.toUpperCase();
+        this.status.context = `${mode} - ${file}`;
+        this.refresh();
     }
 
     setStatusMessage(msg) {
         this.status.context = msg;
+        this.refresh();
     }
 
+    refresh() { this.emit('refresh'); }
+
+    setMode(mode) {
+        this.emit('mode', mode);
+        if (mode === 'command') { return; }
+        this.mode = mode;
+        this.setDefaultStatusMessage();
+        this.refresh();
+        return;
+    }
+
+    isMode(mode) { return this.mode === mode; }
+
     setTempStatusMessage(msg) {
-        if (this.msgInterval) { clearInterval(this.msgInterval); }
+        if (this.msgInterval) {
+            clearInterval(this.msgInterval);
+            this.msgInterval = null;
+        }
 
         this.setStatusMessage(msg);
 
         const s = 2 * 1000;
-        this.msgInterval = setTimeout(() => this.setDefaultStatusMessage(), s);
+        this.msgInterval = setTimeout(() => {
+            this.msgInterval = null;
+            this.setDefaultStatusMessage();
+        }, s);
     }
 
     maxPrefixSize() {
@@ -264,13 +290,12 @@ class Editor extends EventEmitter {
         const { x, y } = this.getCursor();
 
         this.setCursor(this.file.delete(x, y));
-        this.setStatusMessage(this.file.message);
         this.updateSize();
     }
 
     selectionStart() {
         const cursor = this.getCursor();
-        this.selectionMode = true;
+        this.setMode('selection');
         this.selection.start.x = cursor.x;
         this.selection.start.y = cursor.y;
         this.selection.end.x = cursor.x;
@@ -278,7 +303,7 @@ class Editor extends EventEmitter {
     }
 
     selectionCancel() {
-        this.selectionMode = false;
+        this.setMode('edit');
     }
 
     selectionEnd() {
@@ -292,7 +317,7 @@ class Editor extends EventEmitter {
             this.selection.end = temp;
         }
 
-        this.selectionMode = false;
+        this.setMode('edit');
     }
 
     selectionDelete() {
@@ -351,16 +376,23 @@ class Editor extends EventEmitter {
     copy() {
         this.selectionEnd();
         this.emit('selection:buffer', this.getSelectionBuffer());
+        this.setTempStatusMessage('copied');
     }
 
     cut() {
         this.selectionEnd();
         this.emit('selection:buffer', this.getSelectionBuffer());
         this.selectionDelete();
+        this.setTempStatusMessage('cut');
     }
 
-    paste(buffer) {
-        if (this.selectionMode) {
+    paste() {
+        this.emit('selection:paste');
+        this.setTempStatusMessage('paste')
+    }
+
+    pasteBuffer(buffer) {
+        if (this.isMode('selection')) {
             this.selectionEnd();
             this.selectionDelete();
         }
