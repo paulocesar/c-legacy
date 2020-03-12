@@ -5,6 +5,7 @@ module.exports = {
     cursor: '\x1b[40m\x1b[1m\x1b[37m\x1b[5m',
     selection: '\x1b[40m\x1b[1m\x1b[37m',
     line80: '\x1b[46m\x1b[1m\x1b[31m',
+    findResults: '\x1b[45m\x1b[1m\x1b[37m',
 
     bright: '\x1b[1m',
     dim: '\x1b[2m',

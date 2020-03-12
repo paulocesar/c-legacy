@@ -21,6 +21,14 @@ module.exports = {
             return true;
         },
 
+        findResults(editor) {
+            const { w, h } = editor.currentDisplayLine;
+            if (!editor.file.inFind(w, h)) { return false; }
+
+            editor.currentDisplayLine.context += ansi.findResults;
+            return true;
+        },
+
         selection(editor) {
             const { w, h } = editor.currentDisplayLine;
             const mustShow = editor.isMode('selection') &&

@@ -26,11 +26,10 @@ class Editor extends EventEmitter {
         this._lastCursorX = 0;
         this._cursor = { x: 0, y: 0 };
         this._lastCursor = { x: 0, y: 0 };
-        this.selection = {
+        this._selection = {
             start: { x: 0, y: 0 },
             end: { x: 0, y: 0 }
         };
-
         this.prefixes = [
             modifiers.prefixes.lineNumbers
         ];
@@ -38,6 +37,7 @@ class Editor extends EventEmitter {
         this.layouts = [
             modifiers.layouts.cursor,
             modifiers.layouts.selection,
+            modifiers.layouts.findResults,
             modifiers.layouts.line80
         ];
 
@@ -50,12 +50,11 @@ class Editor extends EventEmitter {
         if (this.msgInterval) { return; }
         const file = this.file.name || '(empty)';
         const mode = this.mode.toUpperCase();
-        this.status.context = `${mode} - ${file}`;
-        this.refresh();
+        this.setStatusMessage(`${mode} - ${file}`);
     }
 
     setStatusMessage(msg) {
-        this.status.context = msg;
+        this.status.context = msg.substring(0, this.columns.size);
         this.refresh();
     }
 
@@ -143,7 +142,7 @@ class Editor extends EventEmitter {
             this.currentDisplayLine.w = 0;
             this.currentDisplayLine.context = '';
 
-            const line = this.file.content[h];
+            const line = this.file.content[h] && this.file.content[h].text;
 
             this.applyPrefixes(h);
 
@@ -298,7 +297,6 @@ class Editor extends EventEmitter {
         const { x, y } = this.getCursor();
 
         this.setCursor(this.file.add(x, y, char));
-
         this.updateSize();
     }
 
@@ -312,10 +310,10 @@ class Editor extends EventEmitter {
     selectionStart() {
         const cursor = this.getCursor();
         this.setMode('selection');
-        this.selection.start.x = cursor.x;
-        this.selection.start.y = cursor.y;
-        this.selection.end.x = cursor.x;
-        this.selection.end.y = cursor.y;
+        this._selection.start.x = cursor.x;
+        this._selection.start.y = cursor.y;
+        this._selection.end.x = cursor.x;
+        this._selection.end.y = cursor.y;
     }
 
     selectionCancel() {
@@ -324,20 +322,20 @@ class Editor extends EventEmitter {
 
     selectionEnd() {
         const cursor = this.getCursor();
-        this.selection.end.x = cursor.x;
-        this.selection.end.y = cursor.y;
+        this._selection.end.x = cursor.x;
+        this._selection.end.y = cursor.y;
 
-        if (this.isBefore(this.selection.end, this.selection.start)) {
-            const temp = this.selection.start;
-            this.selection.start = this.selection.end;
-            this.selection.end = temp;
+        if (this.isBefore(this._selection.end, this._selection.start)) {
+            const temp = this._selection.start;
+            this._selection.start = this._selection.end;
+            this._selection.end = temp;
         }
 
         this.setMode('edit');
     }
 
     selectionDelete() {
-        const { start, end } = this.selection;
+        const { start, end } = this._selection;
 
         this.setCursor(end);
         const cursor = this.getCursor();
@@ -348,15 +346,15 @@ class Editor extends EventEmitter {
     }
 
     inSelection(p) {
-        let start = this.selection.start;
+        let start = this._selection.start;
         let end = this.getCursor();
-        if (this.isBefore(this.getCursor(), this.selection.start)) {
+        if (this.isBefore(this.getCursor(), this._selection.start)) {
             start = this.getCursor();
-            end = this.selection.start;
+            end = this._selection.start;
         }
 
         if (p.y < start.y || p.y > end.y) { return false; }
-        if (this.file.content[p.y].length - 1 < p.x) { return false; }
+        if (this.file.content[p.y].text.length - 1 < p.x) { return false; }
         if (p.y === start.y && p.x < start.x) { return false; }
         if (p.y === end.y && p.x > end.x) { return false; }
         return true;
@@ -366,13 +364,13 @@ class Editor extends EventEmitter {
     }
 
     getSelectionBuffer() {
-        const { start, end } = this.selection;
+        const { start, end } = this._selection;
         let buf = '';
 
         for (let y = start.y; y <= end.y; y++) {
             if (y !== start.y) { buf += '\n'; }
 
-            const l = this.file.content[y];
+            const l = this.file.content[y].text;
             const startX = y === start.y ? start.x : 0;
             const maxLength = l.length - 1;
             let endX = y === end.y ? end.x - 1  : maxLength;

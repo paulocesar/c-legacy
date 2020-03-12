@@ -3,15 +3,24 @@ const util = require('util');
 
 const writeFile = util.promisify(fs.writeFile);
 
+class Line {
+    constructor(text) {
+        this.text = text || '';
+        this.findResults = [ ];
+    }
+}
+
 class File {
     constructor(filename) {
         this.name = filename;
         this.isReadOnly = false;
-        this.content = [ '' ];
+        this.content = [ new Line() ];
 
         if (this.name) {
             const text = fs.readFileSync(this.name, 'utf8');
-            if (text) { this.content = text.split('\n'); }
+            if (text) {
+                this.content = text.split('\n').map((l) => new Line(l));
+            }
         }
 
         this.actions = [ ];
@@ -21,7 +30,7 @@ class File {
     async save() {
         if (this.isReadOnly) { return; }
 
-        await writeFile(this.name, this.content.join('\n'));
+        await writeFile(this.name, this.content.map((c) => c.text).join('\n'));
         this.isDirty = false;
     }
 
@@ -83,7 +92,7 @@ class File {
     lineLength(y) {
         const line = this.content[y];
         if (!line){ return 0; }
-        return line.length;
+        return line.text.length;
     }
 
     add(x, y, chars, mustRecord = true) {
@@ -99,6 +108,8 @@ class File {
         }
 
         if (mustRecord) { this.recordAction('add', { x, y }, pos, chars); }
+
+        this.findReview(y);
 
         return pos;
     }
@@ -116,33 +127,35 @@ class File {
             chars = '\n';
             pos = this._removeLineBreak(x, y);
         } else {
-            chars = this.content[y][x - 1];
+            chars = this.content[y].text[x - 1];
             pos = this._removeChars(x, y, 1);
         }
 
         if (mustRecord) { this.recordAction('delete', { x, y }, pos, chars); }
 
+        this.findReview(y);
+
         return pos;
     }
 
     _addChars(x, y, chars) {
-        const line = this.content[y];
-        this.content[y] = line.slice(0, x) + chars + line.slice(x);
+        const line = this.content[y].text
+        this.content[y].text = line.slice(0, x) + chars + line.slice(x);
         return { x: x + chars.length, y };
     }
 
     _removeChars(x, y, len) {
-        const line = this.content[y];
-        this.content[y] = line.slice(0, x - len) + line.slice(x);
+        const line = this.content[y].text;
+        this.content[y].text = line.slice(0, x - len) + line.slice(x);
         return { x: x - len, y };
     }
 
     _addLineBreak(x, y) {
-        const line = this.content[y];
+        const line = this.content[y].text;
         const start = line.slice(0, x);
         const end = line.slice(x);
 
-        this.content[y] = start;
+        this.content[y].text = start;
 
         const top = this.content.slice(0, y + 1);
         const bottom = this.content.slice(y + 1);
@@ -153,10 +166,62 @@ class File {
     }
 
     _removeLineBreak(x, y) {
-        const newX = this.content[y - 1].length;
-        this.content[y - 1] += this.content[y];
+        const newX = this.content[y - 1].text.length;
+        this.content[y - 1].text += this.content[y].text;
         this.content.splice(y, 1);
         return { x: newX, y: y - 1 };
+    }
+
+    find(regex, modifier) {
+        this.findRegex = null;
+
+        try {
+            let mod = 'g';
+            if (modifier) { mod += modifier; }
+            this.findRegex = new RegExp(regex, mod);
+        } catch(ex) {
+            this.setTempStatusMessage('invalid regexp');
+            return;
+        }
+
+        for (const y in this.content) {
+            this._findInLine(y);
+        }
+    }
+
+    inFind(x, y) {
+        const l = this.content[y];
+        if (!l) { return false; }
+
+        for (const { start, end } of l.findResults) {
+            if (x >= start && x <= end) { return true; }
+        }
+
+        return false;
+    }
+
+    findReview(y) {
+        this._findInLine(y - 1);
+        this._findInLine(y);
+        this._findInLine(y + 1);
+    }
+
+    _findInLine(y) {
+        const rgx = this.findRegex;
+
+        if (!rgx) { return; }
+
+        if (this.content[y] == null) { return; }
+
+        this.content[y].findResults = [ ];
+
+        let match = null;
+        while((match = rgx.exec(this.content[y].text)) !== null) {
+            this.content[y].findResults.push({
+                start: match.index,
+                end: match.index + match[0].length - 1
+            });
+        }
     }
 }
 
