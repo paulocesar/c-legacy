@@ -189,6 +189,28 @@ class File {
         }
     }
 
+    findNextSelection(cursor) {
+        if (!this.findRegex) { return; }
+        const { x, y } = cursor;
+        for (let i = y; i <= this.content.length - 1; i++) {
+            const l = this.content[i];
+            for (const { start, end } of l.findResults) {
+                const canPick = y < i || (y === i && end > x);
+                if (canPick) {
+                    return {
+                        start: { x: start, y: i },
+                        end: { x: end + 1, y: i }
+                    };
+                }
+            }
+        }
+
+        return false;
+    }
+
+    findPrevSelection(cursor) {
+    }
+
     inFind(x, y) {
         const l = this.content[y];
         if (!l) { return false; }

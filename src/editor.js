@@ -307,13 +307,21 @@ class Editor extends EventEmitter {
         this.updateSize();
     }
 
-    selectionStart() {
+    selectionStart(selection) {
         const cursor = this.getCursor();
         this.setMode('selection');
         this._selection.start.x = cursor.x;
         this._selection.start.y = cursor.y;
         this._selection.end.x = cursor.x;
         this._selection.end.y = cursor.y;
+
+        if (selection) {
+            this._selection.start.x = selection.start.x;
+            this._selection.start.y = selection.start.y;
+            this._selection.end.x = selection.end.x;
+            this._selection.end.y = selection.end.y;
+            this.setCursor(selection.end);
+        }
     }
 
     selectionCancel() {
@@ -338,10 +346,11 @@ class Editor extends EventEmitter {
         const { start, end } = this._selection;
 
         this.setCursor(end);
-        const cursor = this.getCursor();
+        let cursor = this.getCursor();
 
         while(cursor.x !== start.x || cursor.y !== start.y) {
             this.delete();
+            cursor = this.getCursor();
         }
     }
 
@@ -386,6 +395,21 @@ class Editor extends EventEmitter {
 
     isBefore(p1, p2) {
         return p1.y < p2.y || (p1.y === p2.y && p1.x < p2.x);
+    }
+
+    find(regexString) {
+        this.file.find(regexString);
+        this.findNext();
+    }
+
+    findNext() {
+        const selection = this.file.findNextSelection(this.getCursor());
+        if (!selection) {
+            this.setTempStatusMessage('cannot find next');
+            return;
+        }
+
+        this.selectionStart(selection);
     }
 
     copy() {

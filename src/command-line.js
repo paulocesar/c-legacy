@@ -10,7 +10,7 @@ class CommandLine extends Editor {
     }
 
     start(editor) {
-        this.file.content[0] = '> ';
+        this.file.content[0].text = '> ';
         this.setCursor({ x: 2, y: 0 });
         this.editor = editor;
     }
@@ -54,7 +54,7 @@ class CommandLine extends Editor {
     nextCmd() { }
 
     async execute() {
-        const params = this.file.content[0].trim().split(/\s+/);
+        const params = this.file.content[0].text.trim().split(/\s+/);
 
         // removes command char '>'
         params.shift();
@@ -93,7 +93,7 @@ class CommandLine extends Editor {
     }
 
     switchToEditMode() {
-        this.file.content[0] = '';
+        this.file.content[0].text = '';
         this.setCursor({ x: 0, y: 0 });
         this.emit('mode:editor');
     }

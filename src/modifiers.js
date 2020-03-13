@@ -43,7 +43,9 @@ module.exports = {
 
     prefixes: {
         lineNumbers: {
-            size(editor) { return `${editor.file.content.length}`.length + 1; },
+            size(editor) {
+                return `${editor.file.content.length}`.length + 1;
+            },
             action(editor) {
                 const num = `${editor.currentDisplayLine.h}`;
                 const maxSize = this.size(editor);
@@ -58,11 +60,23 @@ module.exports = {
         save: {
             shortcut: 's',
             async action(editor, params) {
-                let msg = 'saved!';
+                let msg = 'saved';
                 try {
                     await editor.file.save();
                 } catch(e) {
-                    msg = 'cannot save!';
+                    msg = 'cannot save';
+                }
+
+                editor.setTempStatusMessage(msg);
+            }
+        },
+        find: {
+            async action(editor, params) {
+                let msg = `finding ${params[0]}`;
+                try {
+                    editor.find(params[0]);
+                } catch(e) {
+                    msg = e.toString();
                 }
 
                 editor.setTempStatusMessage(msg);
@@ -86,6 +100,11 @@ module.exports = {
 
                 if (key.name === 't' && editor.isMode('selection')) {
                     editor.cut();
+                    return true;
+                }
+
+                if (key.name === 'n') {
+                    editor.findNext();
                     return true;
                 }
 
@@ -137,7 +156,14 @@ module.exports = {
                 return true;
             }
 
-            if (editor.isMode('selection')) { return true; }
+            if (editor.isMode('selection')) {
+                if (key.name === 'backspace') {
+                    editor.selectionDelete();
+                    editor.setMode('editor');
+                    return true;
+                }
+                return true;
+            }
 
             return false;
         }
