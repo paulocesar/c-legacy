@@ -270,18 +270,21 @@ class Editor extends EventEmitter {
     processKey(char, key) {
         if (this.applyKeyboard(char, key)) { return; }
 
-        let c = key.name || key.sequence;
+        const { sequence, name } = key;
 
-        if (c == null || c === 'escape') { return; }
+        if (!sequence && !name) { return; }
+        if (name === 'escape') { return; }
 
-        if (c === 'backspace') {
+        if (name === 'backspace') {
             this.delete();
             return;
         }
 
-        if (c === 'return') { c = '\n'; }
-        if (c === 'space') { c = ' '; }
-        if (c === 'tab') { c = '    '; }
+        let c = sequence || name;
+
+        if (name === 'return') { c = '\n'; }
+        if (name === 'space') { c = ' '; }
+        if (name === 'tab') { c = '    '; }
 
         this.add(c);
     }
@@ -410,6 +413,18 @@ class Editor extends EventEmitter {
         }
 
         this.selectionStart(selection);
+        this.updateSize();
+    }
+
+    findPrev() {
+        const selection = this.file.findPrevSelection(this.getCursor());
+        if (!selection) {
+            this.setTempStatusMessage('cannot find previous');
+            return;
+        }
+
+        this.selectionStart(selection);
+        this.updateSize();
     }
 
     copy() {

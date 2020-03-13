@@ -31,21 +31,24 @@ class CommandLine extends Editor {
             return this.nextCmd();
         }
 
-        let c = key.name || key.sequence;
+        const { sequence, name } = key;
 
-        if (c == null || c === 'escape' || c === 'tab') { return; }
+        if (!sequence && !name) { return; }
+        if (name === 'escape' || name === 'tab') { return; }
 
-        if (c === 'return') {
+        if (name === 'return') {
             this.execute();
             return;
         }
 
-        if (c === 'backspace') {
+        if (name === 'backspace') {
             this.delete();
             return;
         }
 
-        if (c === 'space') { c = ' '; }
+        let c = sequence || name;
+
+        if (name === 'space') { c = ' '; }
 
         this.add(c);
     }

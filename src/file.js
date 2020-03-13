@@ -153,7 +153,7 @@ class File {
     _addLineBreak(x, y) {
         const line = this.content[y].text;
         const start = line.slice(0, x);
-        const end = line.slice(x);
+        const end = new Line(line.slice(x));
 
         this.content[y].text = start;
 
@@ -190,18 +190,17 @@ class File {
     }
 
     findNextSelection(cursor) {
-        if (!this.findRegex) { return; }
+        if (!this.findRegex) { return false; }
         const { x, y } = cursor;
         for (let i = y; i <= this.content.length - 1; i++) {
             const l = this.content[i];
             for (const { start, end } of l.findResults) {
                 const canPick = y < i || (y === i && end > x);
-                if (canPick) {
-                    return {
-                        start: { x: start, y: i },
-                        end: { x: end + 1, y: i }
-                    };
-                }
+                if (!canPick) { continue; }
+                return {
+                    start: { x: start, y: i },
+                    end: { x: end + 1, y: i }
+                };
             }
         }
 
@@ -209,6 +208,22 @@ class File {
     }
 
     findPrevSelection(cursor) {
+        if (!this.findRegex) { return false; }
+        const { x, y } = cursor;
+        for (let i = y; i >= 0; i--) {
+            const l = this.content[i];
+            for (let j = l.findResults.length - 1; j >= 0; j--) {
+                const { start, end } = l.findResults[j];
+                const canPick = y > i || (y === i && end + 1 < x);
+                if (!canPick) { continue; }
+                return {
+                    start: { x: start, y: i },
+                    end: { x: end + 1, y: i }
+                };
+            }
+        }
+
+        return false;
     }
 
     inFind(x, y) {

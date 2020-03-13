@@ -121,6 +121,8 @@ function terminalSetup() {
             if (key.name === 's') { return terminalSave(); }
         }
 
+        // editor.setStatusMessage(`${JSON.stringify(key)}`);
+
         if (mode === 'command') {
             commandLine.processKey(char, key);
         } else {

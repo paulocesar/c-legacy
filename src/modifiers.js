@@ -86,7 +86,6 @@ module.exports = {
 
     keyboard: {
         default(editor, char, key) {
-            // editor.setStatusMessage(`${JSON.stringify(key)}`);
             if (key.ctrl) {
                 if (key.name === 'x') {
                     editor.setMode('command');
@@ -105,6 +104,11 @@ module.exports = {
 
                 if (key.name === 'n') {
                     editor.findNext();
+                    return true;
+                }
+
+                if (key.name === 'b') {
+                    editor.findPrev();
                     return true;
                 }
 
