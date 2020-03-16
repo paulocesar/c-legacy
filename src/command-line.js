@@ -68,7 +68,7 @@ class CommandLine extends Editor {
 
         for (const [ key, value ] of Object.entries(modifiers.commands)) {
             if (key === cmd || value.shortcut === cmd) {
-                action = value.action;
+                action = value.onExecute;
                 mustLock = value.lock || mustLock;
                 break;
             }

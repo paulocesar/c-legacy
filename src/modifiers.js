@@ -2,42 +2,50 @@ const ansi = require('./ansi-escape-codes');
 
 module.exports = {
     layouts: {
-        cursor(editor) {
-            const { w, h } = editor.currentDisplayLine;
-            const { x, y } = editor.getCursor();
+        cursor: {
+            onCharDisplay(editor) {
+                const { w, h } = editor.currentDisplayLine;
+                const { x, y } = editor.getCursor();
 
-            if (x !== w || y !== h) { return false; }
+                if (x !== w || y !== h) { return false; }
 
-            editor.currentDisplayLine.context += ansi.cursor;
+                editor.currentDisplayLine.context += ansi.cursor;
 
-            return true;
+                return true;
+            }
         },
 
-        line80(editor) {
-            const { w } = editor.currentDisplayLine;
-            if (w !== 79) { return false; }
+        line80: {
+            onCharDisplay(editor) {
+                const { w } = editor.currentDisplayLine;
+                if (w !== 79) { return false; }
 
-            editor.currentDisplayLine.context += ansi.line80;
-            return true;
+                editor.currentDisplayLine.context += ansi.line80;
+                return true;
+            }
         },
 
-        findResults(editor) {
-            const { w, h } = editor.currentDisplayLine;
-            if (!editor.file.inFind(w, h)) { return false; }
+        findResults: {
+            onCharDisplay(editor) {
+                const { w, h } = editor.currentDisplayLine;
+                if (!editor.file.inFind(w, h)) { return false; }
 
-            editor.currentDisplayLine.context += ansi.findResults;
-            return true;
+                editor.currentDisplayLine.context += ansi.findResults;
+                return true;
+            }
         },
 
-        selection(editor) {
-            const { w, h } = editor.currentDisplayLine;
-            const mustShow = editor.isMode('selection') &&
-                editor.inSelection({ x: w, y: h })
+        selection: {
+            onCharDisplay(editor) {
+                const { w, h } = editor.currentDisplayLine;
+                const mustShow = editor.isMode('selection') &&
+                    editor.inSelection({ x: w, y: h })
 
-            if (!mustShow) { return false; }
+                if (!mustShow) { return false; }
 
-            editor.currentDisplayLine.context += ansi.selection;
-            return true;
+                editor.currentDisplayLine.context += ansi.selection;
+                return true;
+            }
         }
     },
 
@@ -46,7 +54,7 @@ module.exports = {
             size(editor) {
                 return `${editor.file.content.length}`.length + 1;
             },
-            action(editor) {
+            onLineDisplay(editor) {
                 const num = `${editor.currentDisplayLine.h}`;
                 const maxSize = this.size(editor);
                 const prefix = (Array(maxSize - num.length).join(' '))
@@ -59,7 +67,7 @@ module.exports = {
     commands: {
         save: {
             shortcut: 's',
-            async action(editor, params) {
+            async onExecute(editor, params) {
                 let msg = 'saved';
                 try {
                     await editor.file.save();
@@ -71,10 +79,11 @@ module.exports = {
             }
         },
         find: {
-            async action(editor, params) {
+            async onExecute(editor, params) {
                 let msg = `finding ${params[0]}`;
                 try {
                     editor.find(params[0]);
+                    editor.findNext();
                 } catch(e) {
                     msg = e.toString();
                 }

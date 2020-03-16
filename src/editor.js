@@ -46,6 +46,15 @@ class Editor extends EventEmitter {
         ];
     }
 
+    initializeModifiers() {
+        const modifiers = [ ].concat(this.prefixes).concat(this.layouts)
+            .concat(this.keyboard);
+
+        for (const m of modifiers) {
+            if (m && m.initialize) { m.initialize(this); }
+        }
+    }
+
     setDefaultStatusMessage() {
         if (this.msgInterval) { return; }
         const file = this.file.name || '(empty)';
@@ -99,7 +108,7 @@ class Editor extends EventEmitter {
 
     applyPrefixes(idx) {
         for (let i = this.prefixes.length - 1; i >= 0; i--) {
-            this.prefixes[i].action(this);
+            this.prefixes[i].onLineDisplay(this);
         }
     }
 
@@ -107,7 +116,7 @@ class Editor extends EventEmitter {
         let hasChanges = false;
 
         for (let i = this.layouts.length - 1; i >= 0; i--) {
-            const m = this.layouts[i];
+            const m = this.layouts[i].onCharDisplay;
             if(m(this)) { hasChanges = true; }
         }
 
@@ -402,7 +411,6 @@ class Editor extends EventEmitter {
 
     find(regexString) {
         this.file.find(regexString);
-        this.findNext();
     }
 
     findNext() {
