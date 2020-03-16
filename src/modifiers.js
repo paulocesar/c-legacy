@@ -1,4 +1,18 @@
 const ansi = require('./ansi-escape-codes');
+const helpers = require('./helpers');
+
+const highlights = {
+    js: [
+        {
+            color: ansi.foreground.magenta,
+            regex: /(abstract|arguments|await|boolean|break|byte|case|catch|char|class|const |continue|debugger|default|delete | do |double|else|enum|eval|export|extends |false|final|finally|float|for|function |goto|if|implements|import| in |instanceof|int|interface|let|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try |typeof |var|void |volatile|while|with|yield )/g
+        },
+        {
+            color: ansi.foreground.cyan,
+            regex: /([\{]|[\}])/g
+        }
+    ]
+}
 
 module.exports = {
     layouts: {
@@ -45,6 +59,42 @@ module.exports = {
 
                 editor.currentDisplayLine.context += ansi.selection;
                 return true;
+            }
+        },
+
+        languageHighlight: {
+            initialize(editor) {
+                editor._languageHighlight = { };
+            },
+            beforeLineDisplay(editor, h) {
+                const ext = editor.file.getExtension();
+
+                const data = highlights[ext];
+                if (!data) { return; }
+
+                editor._languageHighlight[h] = { };
+
+                for (const { color, regex } of data) {
+                    editor._languageHighlight[h][color] = editor.file
+                        .findIntervals(h, regex);
+                }
+
+                // editor.setStatusMessage(JSON.stringify(editor._languageHighlight));
+            },
+
+            onCharDisplay(editor) {
+                const { w, h } = editor.currentDisplayLine;
+                const res = Object.entries(editor._languageHighlight[h]);
+                let hasColor = false;
+
+                for (const [ color, intervals ] of res) {
+                    if (helpers.inIntervals(intervals, w)) {
+                        editor.currentDisplayLine.context += color;
+                        hasColor = true;
+                    }
+                }
+
+                return hasColor;
             }
         }
     },

@@ -1,5 +1,8 @@
 const fs = require('fs');
 const util = require('util');
+const path = require('path');
+
+const helpers = require('./helpers');
 
 const writeFile = util.promisify(fs.writeFile);
 
@@ -25,6 +28,11 @@ class File {
 
         this.actions = [ ];
         this.actionIndex = 0;
+    }
+
+    getExtension() {
+        if (!this.name) { return ''; }
+        return path.extname(this.name).replace(/[.]+/g, '') || '';
     }
 
     async save() {
@@ -230,11 +238,7 @@ class File {
         const l = this.content[y];
         if (!l) { return false; }
 
-        for (const { start, end } of l.findResults) {
-            if (x >= start && x <= end) { return true; }
-        }
-
-        return false;
+        return helpers.inIntervals(l.findResults, x);
     }
 
     findReview(y) {
@@ -250,15 +254,22 @@ class File {
 
         if (this.content[y] == null) { return; }
 
-        this.content[y].findResults = [ ];
+        this.content[y].findResults = helpers
+            .findRegexIntervals(rgx, this.content[y].text);
+    }
 
-        let match = null;
-        while((match = rgx.exec(this.content[y].text)) !== null) {
-            this.content[y].findResults.push({
-                start: match.index,
-                end: match.index + match[0].length - 1
-            });
-        }
+    findIntervals(y, regex) {
+        const line = this.content[y];
+        if (!line) { return [ ]; }
+
+        return helpers.findRegexIntervals(regex, line.text);
+    }
+
+    inIntervals(intervals, pos) {
+        const line = this.content[pos.y];
+        if (!line) { return false; }
+
+        return helpers.inIntervals(intervals, pos.x);
     }
 }
 

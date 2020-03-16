@@ -38,12 +38,15 @@ class Editor extends EventEmitter {
             modifiers.layouts.cursor,
             modifiers.layouts.selection,
             modifiers.layouts.findResults,
-            modifiers.layouts.line80
+            modifiers.layouts.line80,
+            modifiers.layouts.languageHighlight
         ];
 
         this.keyboard = [
             modifiers.keyboard.default
         ];
+
+        this.initializeModifiers();
     }
 
     initializeModifiers() {
@@ -123,6 +126,18 @@ class Editor extends EventEmitter {
         return hasChanges;
     }
 
+    beforeLineDisplay(h) {
+        let hasChanges = false;
+
+        for (let i = this.layouts.length - 1; i >= 0; i--) {
+            const m = this.layouts[i].beforeLineDisplay;
+            if(m && m(this, h)) { hasChanges = true; }
+        }
+
+        return hasChanges;
+    }
+
+
     applyKeyboard(char, key) {
         let hasChanges = false;
 
@@ -146,10 +161,12 @@ class Editor extends EventEmitter {
 
         this.currentDisplayLine = { };
 
+
         for (let h = rowStart; h <= rowEnd; h++) {
             this.currentDisplayLine.h = h;
             this.currentDisplayLine.w = 0;
             this.currentDisplayLine.context = '';
+            this.beforeLineDisplay(h);
 
             const line = this.file.content[h] && this.file.content[h].text;
 
