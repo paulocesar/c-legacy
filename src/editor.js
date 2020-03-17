@@ -21,7 +21,6 @@ class Editor extends EventEmitter {
 
         this.msgInterval = null;
         this.status = { rows: 1, context: '' };
-        this.setDefaultStatusMessage();
 
         this._lastCursorX = 0;
         this._cursor = { x: 0, y: 0 };
@@ -47,6 +46,7 @@ class Editor extends EventEmitter {
         ];
 
         this.initializeModifiers();
+        this.setDefaultStatusMessage();
     }
 
     initializeModifiers() {
@@ -66,7 +66,8 @@ class Editor extends EventEmitter {
     }
 
     setStatusMessage(msg) {
-        this.status.context = msg.substring(0, this.columns.size);
+        debugger;
+        this.status.context = msg;
         this.refresh();
     }
 

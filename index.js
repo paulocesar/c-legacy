@@ -18,22 +18,6 @@ function gridColumns() {
     return count;
 }
 
-function gridClear() {
-    const oldGrid = grid;
-    grid = [ ];
-    for (let c = 0; c < 3; c++) {
-        const cArray = [ ];
-
-        for (const e of oldGrid[c]) {
-            if (!e.mustRemove) { cArray.push(e); }
-        }
-
-        if (cArray.length) { grid.push(cArray); }
-    }
-
-    while(grid.length < 3) { grid.push([ ]); }
-}
-
 let commandLine = null;
 let mode = 'editor';
 let previousLines = [ ];
@@ -94,13 +78,120 @@ function displayResize() {
             (Math.floor(maxRows / gRows));
 
         for (let r = 0; r < gRows; r++) {
-            grid[c][r].resizeRows(cols, rows);
+            grid[c][r].resizeRows(cols, r === 0 ? rows : rows - 1);
         }
     }
 
     commandLine.resizeRows(process.stdout.columns, 1);
     displayClear();
     displayRefresh();
+}
+
+
+function createEditor(filename) {
+    const editor = new Editor(filename);
+    editor.on('refresh', () => displayRefresh());
+    editor.on('mode', (m) => {
+        if (m === 'command' ) { commandLine.start(getEditor()); }
+        mode = m;
+    });
+    editor.on('selection:buffer', (b) => { selectionBuffer = b; });
+
+    editor.on('selection:paste', () => {
+        editor.pasteBuffer(selectionBuffer);
+    });
+
+    editor.on('editor:open', ({ split, filename }) => {
+        gridAdd(createEditor(filename), split);
+    });
+
+    editor.on('editor:close', () => {
+        editor.mustRemove = true;
+        gridClear();
+
+        if (gridIsEmpty()) { return terminalFinish(); }
+    });
+
+    return editor;
+}
+
+let gridPos = { x: 0, y: 0 };
+function getEditor() { return grid[gridPos.x][gridPos.y]; }
+
+function gridIsEmpty() {
+    return !grid[0].length && !grid[1].length && !grid[2].length;
+}
+
+function gridClear() {
+    const oldGrid = grid;
+    grid = [ ];
+    for (let c = 0; c < 3; c++) {
+        const cArray = [ ];
+
+        for (const e of oldGrid[c]) {
+            if (!e.mustRemove) { cArray.push(e); }
+        }
+
+        if (cArray.length) { grid.push(cArray); }
+    }
+
+    while(grid.length < 3) { grid.push([ ]); }
+
+    displayResize();
+}
+
+function gridNavigate(direction) {
+    const newPos = { x: gridPos.x, y: gridPos.y };
+
+    if (direction === 'up') { newPos.y--; }
+    if (direction === 'down') { newPos.y++ }
+    if (direction === 'left') { newPos.x--; }
+    if (direction === 'right') { newPos.x++ }
+
+    if (!grid[newPos.x][newPos.y]) {
+        getEditor().setTempStatusMessage(`no file`);
+    }
+
+    getEditor().hasFocus = false;
+    gridPos.x = newPos.x;
+    gridPos.y = newPos.y;
+    getEditor().hasFocus = true;
+
+    displayRefresh();
+}
+
+function gridAdd(editor, split) {
+    let y = 0;
+
+    function splitVertical() {
+        for (let x = 0; x < 3; x++) {
+            if (!grid[x].length) {
+                grid[x].push(editor);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function splitHorizontal() {
+        const lines = grid[gridPos.x];
+        if (lines.length <= 1) {
+            lines.push(editor);
+            return true;
+        }
+
+        return false;
+    }
+
+    const currentEditor = getEditor();
+    const ok = split === 'horizontal' ? splitHorizontal() : splitVertical();
+
+    if (!ok) {
+        currentEditor.setTempStatusMessage(`cannot run a ${split} split`);
+    }
+
+    displayResize();
 }
 
 function terminalSetup() {
@@ -121,12 +212,14 @@ function terminalSetup() {
             if (key.name === 's') { return terminalSave(); }
         }
 
-        // editor.setStatusMessage(`${JSON.stringify(key)}`);
+        // getEditor().setTempStatusMessage(`${JSON.stringify(key)}`);
 
-        if (mode === 'command') {
+        if ([ 'up', 'down', 'left', 'right' ].includes(key.name)) {
+            gridNavigate(key.name);
+        } else if (mode === 'command') {
             commandLine.processKey(char, key);
         } else {
-            grid[0][0].processKey(char, key);
+            getEditor().processKey(char, key);
         }
 
         displayRefresh();
@@ -136,21 +229,6 @@ function terminalSetup() {
 }
 
 function terminalLoad(filename) {
-    const editor = new Editor(filename);
-    editor.on('refresh', () => displayRefresh());
-    editor.on('mode', (m) => {
-        if (m === 'command' ) { commandLine.start(editor); }
-        mode = m;
-    });
-    editor.on('selection:buffer', (b) => { selectionBuffer = b; });
-
-    editor.on('selection:paste', () => {
-        editor.pasteBuffer(selectionBuffer);
-    });
-
-    grid[0].push(editor);
-    //grid[1].push(new Editor(editor.file));
-
     commandLine = new CommandLine();
 
     commandLine.on('refresh', () => displayRefresh());
@@ -158,7 +236,6 @@ function terminalLoad(filename) {
     commandLine.on('mode:editor', () => {
         mode = 'editor';
         gridClear();
-        displayRefresh();
     });
 
     commandLine.on('lock', () => {
@@ -168,6 +245,10 @@ function terminalLoad(filename) {
     commandLine.on('unlock', () => {
         globalLock = false;
     });
+
+    gridAdd(createEditor(filename), 'vertical');
+
+    gridNavigate();
 }
 
 function terminalSave() {

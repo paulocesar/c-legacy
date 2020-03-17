@@ -15,6 +15,8 @@ class CommandLine extends Editor {
         this.editor = editor;
     }
 
+    setStatusMessage() { }
+
     processKey(char, key) {
         if (key.ctrl) {
             if (key.name === 'x') { return this.emit('mode:editor'); }

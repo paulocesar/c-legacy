@@ -78,8 +78,6 @@ module.exports = {
                     editor._languageHighlight[h][color] = editor.file
                         .findIntervals(h, regex);
                 }
-
-                // editor.setStatusMessage(JSON.stringify(editor._languageHighlight));
             },
 
             onCharDisplay(editor) {
@@ -139,6 +137,32 @@ module.exports = {
                 }
 
                 editor.setTempStatusMessage(msg);
+            }
+        },
+        split: {
+            shortcut: 'sv',
+            async onExecute(editor, params) {
+                editor.emit('editor:open', {
+                    split: 'vertical',
+                    filename: params[0] || editor.file
+                });
+            }
+        },
+        'split-horizontal': {
+            shortcut: 'sh',
+            async onExecute(editor, params) {
+
+                editor.setTempStatusMessage(`editor:open`);
+                editor.emit('editor:open', {
+                    split: 'horizontal',
+                    filename: params[0] || editor.file
+                });
+            }
+        },
+        close: {
+            shortcut: 'c',
+            async onExecute(editor) {
+                editor.emit('editor:close');
             }
         }
     },
