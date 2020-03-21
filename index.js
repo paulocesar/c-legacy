@@ -148,9 +148,13 @@ function gridNavigate(direction) {
     if (direction === 'left') { newPos.x--; }
     if (direction === 'right') { newPos.x++ }
 
-    if (!grid[newPos.x][newPos.y]) {
-        getEditor().setTempStatusMessage(`no file`);
+    function deny() {
+        getEditor().setTempStatusMessage(`no editor found`);
     }
+
+    if (!grid[newPos.x]) { return deny(); }
+
+    if(!grid[newPos.x][newPos.y]) { return deny(); }
 
     getEditor().hasFocus = false;
     gridPos.x = newPos.x;

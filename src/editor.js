@@ -66,7 +66,6 @@ class Editor extends EventEmitter {
     }
 
     setStatusMessage(msg) {
-        debugger;
         this.status.context = msg;
         this.refresh();
     }
