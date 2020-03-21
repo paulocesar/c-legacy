@@ -311,7 +311,9 @@ class Editor extends EventEmitter {
         if (name === 'return') { c = '\n'; }
         if (name === 'space') { c = ' '; }
         if (name === 'tab') { c = '    '; }
+        if (key.ctrl) { return; }
 
+        //this.setTempStatusMessage(JSON.stringify({ char, key }));
         this.add(c);
     }
 
