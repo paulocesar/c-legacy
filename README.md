@@ -24,7 +24,7 @@ shift-j | move down
 shift-k | move up
 shift-l | move right
 i | switch to edit mode
-c | switch to command mode
+enter | switch to command mode
 s | switch to selection mode
 ; | switch to search in command mode
 b | previous search result
