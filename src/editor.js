@@ -138,15 +138,18 @@ class Editor extends EventEmitter {
     }
 
 
-    applyKeyboard(char, key) {
-        let hasChanges = false;
-
+    applyKeyboard(cmd) {
         for (let i = this.keyboard.length - 1; i >= 0; i--) {
-            const m = this.keyboard[i];
-            if(m(this, char, key)) { hasChanges = true; }
+            const kb = this.keyboard[i];
+
+            for (const [ key, fn ] of Object.entries(kb)) {
+                if (cmd === key) {
+                    if (fn(this)) { return true; }
+                }
+            }
         }
 
-        return hasChanges;
+        return false;
     }
 
     getDisplayLines() {
@@ -293,27 +296,19 @@ class Editor extends EventEmitter {
         if (x - 3 < start && x - 3 >= 0) { this.columns.start -= (x - start); }
     }
 
-    processKey(char, key) {
-        if (this.applyKeyboard(char, key)) { return; }
+    processKey(name) {
+        if (this.applyKeyboard(name)) { return; }
 
-        const { sequence, name } = key;
-
-        if (!sequence && !name) { return; }
-        if (name === 'escape') { return; }
-
-        if (name === 'backspace') {
+        if (name === '\b') {
             this.delete();
             return;
         }
 
-        let c = sequence || name;
+        let c = name;
 
-        if (name === 'return') { c = '\n'; }
-        if (name === 'space') { c = ' '; }
-        if (name === 'tab') { c = '    '; }
-        if (key.ctrl) { return; }
+        if (name === '\t') { c = '    '; }
+        else if (name.length > 1) { return; }
 
-        //this.setTempStatusMessage(JSON.stringify({ char, key }));
         this.add(c);
     }
 

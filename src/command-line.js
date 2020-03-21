@@ -17,42 +17,20 @@ class CommandLine extends Editor {
 
     setStatusMessage() { }
 
-    processKey(char, key) {
-        if (key.ctrl) {
-            if (key.name === 'x') { return this.emit('mode:editor'); }
-            if (key.name === 'k') { return this.prevCmd(); }
-            if (key.name === 'l') { return this.moveOffset({ x: 1, y: 0 }); }
-            return;
-        }
+    processKey(name) {
+        if (name === 'ctrl-x') { return this.emit('mode:editor'); }
+        if (name === 'ctrl-h') { return this.moveOffset({ x: -1, y: 0 }); }
+        if (name === 'ctrl-j') { return this.nextCmd(); }
+        if (name === 'ctrl-k') { return this.prevCmd(); }
+        if (name === 'ctrl-l') { return this.moveOffset({ x: 1, y: 0 }); }
 
-        if (key.sequence === '\b' && key.name === 'backspace') {
-            return this.moveOffset({ x: -1, y: 0 });
-        }
+        if (/ctrl-/.test(name)) { return; }
 
-        if (key.sequence === '\n' && key.name === 'enter') {
-            return this.nextCmd();
-        }
+        if (name === '\n') { return this.execute(); }
 
-        const { sequence, name } = key;
+        if (name === '\b') { return this.delete(); }
 
-        if (!sequence && !name) { return; }
-        if (name === 'escape' || name === 'tab') { return; }
-
-        if (name === 'return') {
-            this.execute();
-            return;
-        }
-
-        if (name === 'backspace') {
-            this.delete();
-            return;
-        }
-
-        let c = sequence || name;
-
-        if (name === 'space') { c = ' '; }
-
-        this.add(c);
+        this.add(name);
     }
 
     prevCmd() { }

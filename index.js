@@ -3,6 +3,7 @@ const tty = require('tty');
 const readline = require('readline');
 const Editor = require('./src/editor');
 const CommandLine = require('./src/command-line');
+const keyboard = require('./src/keyboard');
 
 let grid = [ [ ], [ ], [ ] ];
 
@@ -211,19 +212,20 @@ function terminalSetup() {
     process.stdin.on('keypress', function (char, key) {
         if (globalLock || !key) { return; }
 
-        if (key.ctrl) {
-            if (key.name === 'c') { return terminalFinish(); }
-            if (key.name === 's') { return terminalSave(); }
-        }
+        const name = keyboard.parse(char, key);
+        if (name === null) { return; }
 
-        // getEditor().setTempStatusMessage(`${JSON.stringify(key)}`);
+        if (name === 'ctrl-c') { return terminalFinish(); }
+        if (name === 'ctrl-s') { return terminalSave(); }
 
-        if ([ 'up', 'down', 'left', 'right' ].includes(key.name)) {
+        //getEditor().setTempStatusMessage(`${name} ${JSON.stringify(key)}`);
+
+        if ([ 'up', 'down', 'left', 'right' ].includes(name)) {
             gridNavigate(key.name);
         } else if (mode === 'command') {
-            commandLine.processKey(char, key);
+            commandLine.processKey(name);
         } else {
-            getEditor().processKey(char, key);
+            getEditor().processKey(name);
         }
 
         displayRefresh();

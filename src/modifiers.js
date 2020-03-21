@@ -168,91 +168,87 @@ module.exports = {
     },
 
     keyboard: {
-        default(editor, char, key) {
-            if (key.ctrl) {
-                if (key.name === 'x') {
-                    editor.setMode('command');
-                    return true;
-                }
+        default: {
+            'ctrl-x': (editor) => {
+                editor.setMode('command');
+                return true;
+            },
 
-                if (key.name === 'y' && editor.isMode('selection')) {
-                    editor.copy();
-                    return true;
-                }
-
-                if (key.name === 't' && editor.isMode('selection')) {
+            'ctrl-y': (editor) => {
+                if (editor.isMode('selection')) {
                     editor.cut();
                     return true;
                 }
+                return false;
+            },
 
-                if (key.name === 'n') {
-                    editor.findNext();
-                    return true;
-                }
+            'ctrl-t': (editor) => {
+                if (!editor.isMode('selection')) { return false; }
+                editor.cut();
+                return true;
+            },
 
-                if (key.name === 'b') {
-                    editor.findPrev();
-                    return true;
-                }
+            'ctrl-b': (editor) => {
+                editor.findPrev();
+                return true;
+            },
 
-                if (key.name === 'p') {
-                    editor.paste();
-                    return true;
-                }
+            'ctrl-n': (editor) => {
+                editor.findNext();
+                return true;
+            },
 
-                if (key.name === 'v') {
-                    editor.isMode('selection') ?
-                        editor.selectionEnd() :
-                        editor.selectionStart();
+            'ctrl-p': (editor) => {
+                editor.paste();
+                return true;
+            },
 
-                    return true;
-                }
-
-                if (key.name === 'k') {
-                    editor.moveOffset({ x: 0, y: -1 });
-                    return true;
-                }
-
-                if (key.name === 'l') {
-                    editor.moveOffset({ x: 1, y: 0 });
-                    return true;
-                }
-
-                if (editor.isMode('selection')) { return true; }
-
-                if (key.name === 'u') {
-                    editor.undo();
-                    return true;
-                }
-
-                if (key.name === 'r') {
-                    editor.redo();
-                    return true;
-                }
-
-                return false;;
-            }
-
-            if (key.sequence === '\b' && key.name === 'backspace') {
+            'ctrl-h': (editor) => {
                 editor.moveOffset({ x: -1, y: 0 });
                 return true;
-            }
+            },
 
-            if (key.sequence === '\n' && key.name === 'enter') {
+            'ctrl-j': (editor) => {
                 editor.moveOffset({ x: 0, y: 1 });
                 return true;
-            }
+            },
 
-            if (editor.isMode('selection')) {
-                if (key.name === 'backspace') {
-                    editor.selectionDelete();
-                    editor.setMode('editor');
-                    return true;
-                }
+            'ctrl-k': (editor) => {
+                editor.moveOffset({ x: 0, y: -1 });
+                return true;
+            },
+
+            'ctrl-l': (editor) => {
+                editor.moveOffset({ x: 1, y: 0 });
+                return true;
+            },
+
+            'ctrl-v': (editor) => {
+                editor.isMode('selection') ?
+                    editor.selectionEnd() :
+                    editor.selectionStart();
+
+                return true;
+            },
+
+            'ctrl-u': (editor) => {
+                if (editor.isMode('selection')){ return false; }
+                editor.undo();
+                return true;
+            },
+
+            'ctrl-r': (editor) => {
+                if (editor.isMode('selection')){ return false; }
+                editor.redo();
+                return true;
+            },
+
+            '\b': (editor) => {
+                if (!editor.isMode('selection')) { return false; }
+                editor.selectionDelete();
+                editor.setMode('editor');
                 return true;
             }
-
-            return false;
         }
     }
 };
