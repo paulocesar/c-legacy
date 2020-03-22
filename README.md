@@ -11,31 +11,33 @@ a tiny code editor
 
 ## Usage
 
-#### navigation mode
-
-key | description
-:-- | :--
-h | end of previous word
-j | next empty line
-k | previous empty line
-l | end of next word
-shift-h | move left
-shift-j | move down
-shift-k | move up
-shift-l | move right
-i | switch to edit mode
-enter | switch to command mode
-s | switch to selection mode
-; | switch to search in command mode
-b | previous search result
-n | next search result
-f | select word before cursor until cursor position and switch to select mode
-shift-f | select current line and switch to select mode
-g | go to top
-shift-g | go to bottom
-u | undo
-r | redo
-d | delete current line
-v | switch to split panel in command mode
-w | save file
-q | save and close file
+key | description | modes
+:-- | :-- | :--
+h | end of previous word | navigate, select
+j | next empty line | navigate, select
+k | previous empty line | navigate, select
+l | end of next word | navigate, select
+shift-h | move left | navigate, select, edit
+shift-j | move down | navigate, select, edit
+shift-k | move up | navigate, select, edit
+shift-l | move right | navigate, select, edit
+i | switch to edit mode | navigate, select
+enter | switch to command mode | navigate, select
+s | switch to selection mode | navigate
+; | switch to search in command mode | navigate, select
+b | previous search result | navigate, select
+n | next search result | navigate, select
+ctrl-b | previous search result | navigate, select, edit
+ctrl-n | next search result | navigate, select, edit
+f | select word before cursor until cursor position and switch to select mode | navigate
+shift-f | select current line and switch to select mode | navigate
+g | go to top | navigate, select
+shift-g | go to bottom | navigate, select
+u | undo | navigate
+r | redo | navigate
+ctrl-u | undo | navigate, edit
+ctrl-r | redo | navigate, edit
+d | delete current line | navigate
+v | switch to split panel in command mode | navigate
+w | save file | navigate
+q | save and close file | navigate

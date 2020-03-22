@@ -230,6 +230,21 @@ class Editor extends EventEmitter {
         this.updateSize();
     }
 
+    moveNextWord() {
+    }
+
+    movePrevWord() {
+
+    }
+
+    moveNextEmptyLine() {
+
+    }
+
+    movePrevEmptyLine() {
+
+    }
+
     moveOffset(direction) {
         this.moveTo({
             x: this.getCursor().x + direction.x,
@@ -337,7 +352,7 @@ class Editor extends EventEmitter {
 
     selectionStart(selection) {
         const cursor = this.getCursor();
-        this.setMode('selection');
+        this.setMode('select');
         this._selection.start.x = cursor.x;
         this._selection.start.y = cursor.y;
         this._selection.end.x = cursor.x;
@@ -470,7 +485,7 @@ class Editor extends EventEmitter {
     }
 
     pasteBuffer(buffer) {
-        if (this.isMode('selection')) {
+        if (this.isMode('select')) {
             this.selectionEnd();
             this.selectionDelete();
         }
@@ -495,7 +510,6 @@ class Editor extends EventEmitter {
 
         this.setCursor(pos);
     }
-
 }
 
 module.exports = Editor;

@@ -271,6 +271,24 @@ class File {
 
         return helpers.inIntervals(intervals, pos.x);
     }
+
+    findNearWords(pos) {
+        const content = { };
+        const rgxWord = /([\w\d]+|[^\w\d\s]{1})/
+        const res = {
+            prev: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } },
+            next: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } }
+        };
+
+        for (let u = pos.y - 1; i <= pos.y + 1; i++) {
+            content[y] = this.findIntervals(i, rgxWord);
+        }
+
+        // TODO
+        // get interval index
+        // pick prev/next intervals
+        // set null or start/end to prev/next res
+    }
 }
 
 module.exports = File;

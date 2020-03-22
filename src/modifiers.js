@@ -52,7 +52,7 @@ const modifiers = {
         selection: {
             onCharDisplay(editor) {
                 const { w, h } = editor.currentDisplayLine;
-                const mustShow = editor.isMode('selection') &&
+                const mustShow = editor.isMode('select') &&
                     editor.inSelection({ x: w, y: h })
 
                 if (!mustShow) { return false; }
@@ -131,6 +131,7 @@ const modifiers = {
             async onExecute(editor, params) {
                 let msg = 'saved';
                 try {
+                    // TODO: call str.trimEnd() before save and fix cursor pos
                     await editor.file.save();
                 } catch(e) {
                     msg = 'cannot save';
@@ -194,13 +195,13 @@ const modifiers = {
             },
 
             'ctrl-y': (editor) => {
-                if (!editor.isMode('selection')) { return false; }
+                if (!editor.isMode('select')) { return false; }
                 editor.copy();
                 return true;
             },
 
             'ctrl-t': (editor) => {
-                if (!editor.isMode('selection')) { return false; }
+                if (!editor.isMode('select')) { return false; }
                 editor.cut();
                 return true;
             },
@@ -217,6 +218,30 @@ const modifiers = {
 
             'ctrl-p': (editor) => {
                 editor.paste();
+                return true;
+            },
+
+            'h': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.movePrevWord();
+                return true;
+            },
+
+            'l': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.moveNextWord();
+                return true;
+            },
+
+            'j': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.moveNextEmptyLine();
+                return true;
+            },
+
+            'h': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.movePrevEmptyLine();
                 return true;
             },
 
@@ -241,7 +266,7 @@ const modifiers = {
             },
 
             'ctrl-v': (editor) => {
-                editor.isMode('selection') ?
+                editor.isMode('select') ?
                     editor.selectionEnd() :
                     editor.selectionStart();
 
@@ -249,19 +274,19 @@ const modifiers = {
             },
 
             'ctrl-u': (editor) => {
-                if (editor.isMode('selection')){ return false; }
+                if (editor.isMode('select')){ return false; }
                 editor.undo();
                 return true;
             },
 
             'ctrl-r': (editor) => {
-                if (editor.isMode('selection')){ return false; }
+                if (editor.isMode('select')){ return false; }
                 editor.redo();
                 return true;
             },
 
             '\b': (editor) => {
-                if (!editor.isMode('selection')) { return false; }
+                if (!editor.isMode('select')) { return false; }
                 editor.selectionDelete();
                 editor.setMode('edit');
                 return true;
