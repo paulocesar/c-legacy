@@ -14,7 +14,7 @@ const highlights = {
     ]
 }
 
-module.exports = {
+const modifiers = {
     layouts: {
         cursor: {
             onCharDisplay(editor) {
@@ -66,10 +66,18 @@ module.exports = {
             initialize(editor) {
                 editor._languageHighlight = { };
             },
-            beforeLineDisplay(editor, h) {
+
+            getLanguageData(editor) {
                 const ext = editor.file.getExtension();
+                if (!ext) { return; }
 
                 const data = highlights[ext];
+                return data;
+            },
+
+            beforeLineDisplay(editor, h) {
+                const data = modifiers.layouts.languageHighlight
+                    .getLanguageData(editor);
                 if (!data) { return; }
 
                 editor._languageHighlight[h] = { };
@@ -81,6 +89,11 @@ module.exports = {
             },
 
             onCharDisplay(editor) {
+                const data = modifiers.layouts.languageHighlight
+                    .getLanguageData(editor);
+
+                if (!data) { return; }
+
                 const { w, h } = editor.currentDisplayLine;
                 const res = Object.entries(editor._languageHighlight[h]);
                 let hasColor = false;
@@ -169,17 +182,21 @@ module.exports = {
 
     keyboard: {
         default: {
+            initialize: (editor) => { },
+
+            others: (editor, key) => {
+                return !editor.isMode('edit');
+            },
+
             'ctrl-x': (editor) => {
                 editor.setMode('command');
                 return true;
             },
 
             'ctrl-y': (editor) => {
-                if (editor.isMode('selection')) {
-                    editor.cut();
-                    return true;
-                }
-                return false;
+                if (!editor.isMode('selection')) { return false; }
+                editor.copy();
+                return true;
             },
 
             'ctrl-t': (editor) => {
@@ -246,9 +263,11 @@ module.exports = {
             '\b': (editor) => {
                 if (!editor.isMode('selection')) { return false; }
                 editor.selectionDelete();
-                editor.setMode('editor');
+                editor.setMode('edit');
                 return true;
             }
         }
     }
 };
+
+module.exports = modifiers;

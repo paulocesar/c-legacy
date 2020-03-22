@@ -78,7 +78,7 @@ class CommandLine extends Editor {
     switchToEditMode() {
         this.file.content[0].text = '';
         this.setCursor({ x: 0, y: 0 });
-        this.emit('mode:editor');
+        this.emit('mode:edit');
     }
 };
 

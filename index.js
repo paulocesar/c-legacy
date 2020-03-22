@@ -20,7 +20,7 @@ function gridColumns() {
 }
 
 let commandLine = null;
-let mode = 'editor';
+let mode = 'edit';
 let previousLines = [ ];
 let selectionBuffer = '';
 let globalLock = false;
@@ -239,8 +239,8 @@ function terminalLoad(filename) {
 
     commandLine.on('refresh', () => displayRefresh());
 
-    commandLine.on('mode:editor', () => {
-        mode = 'editor';
+    commandLine.on('mode:edit', () => {
+        mode = 'edit';
         gridClear();
     });
 

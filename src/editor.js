@@ -147,6 +147,8 @@ class Editor extends EventEmitter {
                     if (fn(this)) { return true; }
                 }
             }
+
+            if (kb.others && kb.others(this, cmd)) { return true; }
         }
 
         return false;
