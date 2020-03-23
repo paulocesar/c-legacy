@@ -281,6 +281,7 @@ class Editor extends EventEmitter {
         this._cursor.x = cursor.x;
         this._cursor.y = cursor.y;
 
+        this.setStatusMessage(JSON.stringify(this.file.findNearWords(cursor)));
         this.updateSize();
     }
 

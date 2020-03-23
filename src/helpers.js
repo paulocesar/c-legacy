@@ -14,10 +14,23 @@ module.exports = {
     },
 
     inIntervals(intervals, x) {
+        return Boolean(this.getInterval(intervals, x));
+    },
+
+    getInterval(intervals, x) {
         for (const { start, end } of intervals) {
-            if (x >= start && x <= end) { return true; }
+            if (x >= start && x <= end) { return { start, end }; }
         }
 
-        return false;
+        return null;
+    },
+
+    getIntervalIndex(intervals, x) {
+        for (let i = 0; i < intervals.length; i++) {
+            const { start, end } = intervals[i];
+            if (x >= start && x <= end) { return i; }
+        }
+
+        return null;
     }
 };

@@ -274,20 +274,60 @@ class File {
 
     findNearWords(pos) {
         const content = { };
-        const rgxWord = /([\w\d]+|[^\w\d\s]{1})/
-        const res = {
-            prev: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } },
-            next: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } }
-        };
+        const rgxWord = /([\w\d]+|[^\w\d\s]{1})/g
+        const getInterval = (y) => this.findIntervals(y, rgxWord);
 
-        for (let u = pos.y - 1; i <= pos.y + 1; i++) {
-            content[y] = this.findIntervals(i, rgxWord);
+        let prevY = null;
+        let prev = [ ];
+        let nextY = null;
+        let next = [ ];
+
+        for (let y = pos.y - 1; y >= 0; y--) {
+            const i = getInterval(y);
+            if (i.length > 0) {
+                prev = i;
+                prevY = y;
+                break;
+            }
         }
 
-        // TODO
-        // get interval index
-        // pick prev/next intervals
-        // set null or start/end to prev/next res
+        for (let y = pos.y + 1; y < this.content.length; y++) {
+            const i = getInterval(y);
+            if (i.length > 0) {
+                next = i;
+                nextY = y;
+                break;
+            }
+        }
+
+        const current = getInterval(pos.y);
+
+        const currentIdx = helpers.getIntervalIndex(current, pos.x);
+        const currentInterval = current[currentIdx] || null;
+
+        let prevInterval = prev[prev.length - 1] || null;
+        if (currentIdx > 0) {
+            prevInterval = current[currentIdx - 1];
+            prevY = pos.y;
+        }
+
+        let nextInterval = next[0] || null;
+        if (currentIdx < current.length - 1) {
+            nextInterval = current[currentIdx + 1];
+            nextY = pos.y;
+        }
+
+        function buildInterval(interval, y) {
+            if (!interval || y === null) { return null; }
+            const { start, end } = interval;
+            return { start: { x: start, y }, end: { x: end, y } };
+        }
+
+        return {
+            prev: buildInterval(prevInterval, prevY),
+            current: buildInterval(currentInterval, pos.y),
+            next: buildInterval(nextInterval, nextY)
+        };
     }
 }
 
