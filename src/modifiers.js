@@ -237,15 +237,21 @@ const modifiers = {
                 return true;
             },
 
-            'l': (editor) => {
-                if (editor.isMode('edit')) { return false; }
-                editor.moveNextWord();
-                return true;
-            },
-
             'j': (editor) => {
                 if (!editor.isMode('edit')) { return false; }
                 editor.moveNextEmptyLine();
+                return true;
+            },
+
+            'k': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.movePrevEmptyLine();
+                return true;
+            },
+
+            'l': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.moveNextWord();
                 return true;
             },
 
@@ -296,6 +302,15 @@ const modifiers = {
                 if (!canSearch) { return false; }
 
                 editor.setMode('command', 'find');
+            },
+
+            '\n': (editor) => {
+                if (editor.isMode('navigate')) {
+                    editor.setMode('command');
+                    return true;
+                }
+
+                return false;
             },
 
             '\b': (editor) => {
