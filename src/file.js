@@ -306,15 +306,31 @@ class File {
         const currentInterval = current[currentIdx] || null;
 
         let prevInterval = prev[prev.length - 1] || null;
-        if (currentIdx > 0) {
-            prevInterval = current[currentIdx - 1];
-            prevY = pos.y;
-        }
-
         let nextInterval = next[0] || null;
-        if (currentIdx < current.length - 1) {
-            nextInterval = current[currentIdx + 1];
-            nextY = pos.y;
+
+        if (currentIdx !== null) {
+            if (currentIdx > 1) {
+                prevInterval = current[currentIdx - 2];
+                prevY = pos.y;
+            }
+
+            if (currentIdx < current.length - 1) {
+                nextInterval = current[currentIdx + 1];
+                nextY = pos.y;
+            }
+        } else {
+            const results = helpers.splitIntervals(current,
+                (i) => i.end > pos.x);
+
+            if (results[0].length > 1) {
+                prevInterval = results[0][results[0].length - 2];
+                prevY = pos.y;
+            }
+
+            if (results[1].length > 0) {
+                nextInterval = results[1][0];
+                nextY = pos.y;
+            }
         }
 
         function buildInterval(interval, y) {

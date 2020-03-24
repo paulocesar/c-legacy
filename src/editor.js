@@ -13,7 +13,7 @@ class Editor extends EventEmitter {
             this.file = new File(file);
         }
 
-        this.mode = 'edit';
+        this.mode = 'navigate';
         this.mustRemove = false;
 
         this.columns = { start: 0, size: 0 };
@@ -231,10 +231,29 @@ class Editor extends EventEmitter {
     }
 
     moveNextWord() {
+        const cursor = this.getCursor();
+        const { next, current } = this.file.findNearWords(cursor);
+        if (!next && !current) { return; }
+
+        let selection = current;
+        if (next && (!selection || selection.end.x <= cursor.x - 1)) {
+            selection = next;
+        }
+
+        this.moveTo({ x: selection.end.x + 1, y: selection.end.y });
     }
 
     movePrevWord() {
+        const cursor = this.getCursor();
+        const { prev, current } = this.file.findNearWords(cursor);
+        if (!prev && !current) { return; }
 
+        let selection = current;
+        if (prev && (!selection || selection.end.x >= cursor.x - 1)) {
+            selection = prev;
+        }
+
+        this.moveTo({ x: selection.end.x + 1, y: selection.end.y });
     }
 
     moveNextEmptyLine() {
@@ -281,7 +300,6 @@ class Editor extends EventEmitter {
         this._cursor.x = cursor.x;
         this._cursor.y = cursor.y;
 
-        this.setStatusMessage(JSON.stringify(this.file.findNearWords(cursor)));
         this.updateSize();
     }
 

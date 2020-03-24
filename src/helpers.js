@@ -32,5 +32,14 @@ module.exports = {
         }
 
         return null;
+    },
+
+    splitIntervals(intervals, rule) {
+        const results = [ [ ], [ ] ];
+        for (const i of intervals) {
+            const idx = rule(i) ? 1 : 0;
+            results[idx].push(i);
+        }
+        return results;
     }
 };

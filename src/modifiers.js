@@ -190,6 +190,10 @@ const modifiers = {
             },
 
             'ctrl-x': (editor) => {
+                if (editor.isMode('edit')) {
+                    editor.setMode('navigate');
+                    return true;
+                }
                 editor.setMode('command');
                 return true;
             },
@@ -221,14 +225,20 @@ const modifiers = {
                 return true;
             },
 
+            'i': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.setMode('edit');
+                return true;
+            },
+
             'h': (editor) => {
-                if (!editor.isMode('edit')) { return false; }
+                if (editor.isMode('edit')) { return false; }
                 editor.movePrevWord();
                 return true;
             },
 
             'l': (editor) => {
-                if (!editor.isMode('edit')) { return false; }
+                if (editor.isMode('edit')) { return false; }
                 editor.moveNextWord();
                 return true;
             },
@@ -236,12 +246,6 @@ const modifiers = {
             'j': (editor) => {
                 if (!editor.isMode('edit')) { return false; }
                 editor.moveNextEmptyLine();
-                return true;
-            },
-
-            'h': (editor) => {
-                if (!editor.isMode('edit')) { return false; }
-                editor.movePrevEmptyLine();
                 return true;
             },
 
