@@ -92,9 +92,11 @@ function displayResize() {
 function createEditor(filename) {
     const editor = new Editor(filename);
     editor.on('refresh', () => displayRefresh());
-    editor.on('mode', (m) => {
-        if (m === 'command' ) { commandLine.start(getEditor()); }
-        mode = m;
+    editor.on('mode', (res) => {
+        if (res.mode === 'command' ) {
+            commandLine.start(getEditor(), res.params);
+        }
+        mode = res.mode;
     });
     editor.on('selection:buffer', (b) => { selectionBuffer = b; });
 

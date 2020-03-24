@@ -9,9 +9,16 @@ class CommandLine extends Editor {
         this.layouts = [ modifiers.layouts.cursor ];
     }
 
-    start(editor) {
-        this.file.content[0].text = '> ';
-        this.setCursor({ x: 2, y: 0 });
+    start(editor, preCommand) {
+        if (!preCommand) {
+            preCommand = '';
+        } else {
+            preCommand = preCommand.trim() + ' ';
+        }
+
+        const cmd = '> ' + preCommand;
+        this.file.content[0].text = cmd;
+        this.setCursor({ x: cmd.length, y: 0 });
         this.editor = editor;
     }
 

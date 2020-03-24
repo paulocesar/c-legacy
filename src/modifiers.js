@@ -289,6 +289,15 @@ const modifiers = {
                 return true;
             },
 
+            '\/': (editor) => {
+                const canSearch = editor.isMode('navigate') ||
+                    editor.isMode('select');
+
+                if (!canSearch) { return false; }
+
+                editor.setMode('command', 'find');
+            },
+
             '\b': (editor) => {
                 if (!editor.isMode('select')) { return false; }
                 editor.selectionDelete();

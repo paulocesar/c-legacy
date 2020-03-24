@@ -72,8 +72,8 @@ class Editor extends EventEmitter {
 
     refresh() { this.emit('refresh'); }
 
-    setMode(mode) {
-        this.emit('mode', mode);
+    setMode(mode, params) {
+        this.emit('mode', { mode, params });
         if (mode === 'command') { return; }
         this.mode = mode;
         this.setDefaultStatusMessage();
