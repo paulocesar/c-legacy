@@ -257,11 +257,11 @@ class Editor extends EventEmitter {
     }
 
     moveNextEmptyLine() {
-
+        this.moveOffset({ x: 0, y: 1 });
     }
 
     movePrevEmptyLine() {
-
+        this.moveOffset({ x: 0, y: -1 });
     }
 
     moveOffset(direction) {

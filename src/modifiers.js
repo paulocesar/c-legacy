@@ -238,13 +238,13 @@ const modifiers = {
             },
 
             'j': (editor) => {
-                if (!editor.isMode('edit')) { return false; }
+                if (editor.isMode('edit')) { return false; }
                 editor.moveNextEmptyLine();
                 return true;
             },
 
             'k': (editor) => {
-                if (!editor.isMode('edit')) { return false; }
+                if (editor.isMode('edit')) { return false; }
                 editor.movePrevEmptyLine();
                 return true;
             },
