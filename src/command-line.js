@@ -63,7 +63,7 @@ class CommandLine extends Editor {
 
         if (!action) {
             this.editor.setTempStatusMessage('invalid command');
-            return this.switchToEditMode();
+            return this.switchToEditor();
         }
 
         if (mustLock) { this.emit('lock'); }
@@ -77,15 +77,15 @@ class CommandLine extends Editor {
         if (mustLock) { this.emit('unlock'); }
 
 
-        this.switchToEditMode();
+        this.switchToEditor();
 
         this.emit('refresh');
     }
 
-    switchToEditMode() {
+    switchToEditor() {
         this.file.content[0].text = '';
         this.setCursor({ x: 0, y: 0 });
-        this.emit('mode:edit');
+        this.emit('mode:navigate');
     }
 };
 

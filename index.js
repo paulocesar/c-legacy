@@ -20,7 +20,7 @@ function gridColumns() {
 }
 
 let commandLine = null;
-let mode = 'edit';
+let mode = 'navigate';
 let previousLines = [ ];
 let selectionBuffer = '';
 let globalLock = false;
@@ -241,9 +241,11 @@ function terminalLoad(filename) {
 
     commandLine.on('refresh', () => displayRefresh());
 
-    commandLine.on('mode:edit', () => {
-        mode = 'edit';
+    commandLine.on('mode:navigate', () => {
+        mode = 'navigate';
         gridClear();
+        const e = getEditor();
+        if (e) { e.setMode('navigate'); }
     });
 
     commandLine.on('lock', () => {

@@ -126,8 +126,8 @@ const modifiers = {
     },
 
     commands: {
-        save: {
-            shortcut: 's',
+        write: {
+            shortcut: 'w',
             async onExecute(editor, params) {
                 let msg = 'saved';
                 try {
@@ -140,6 +140,7 @@ const modifiers = {
                 editor.setTempStatusMessage(msg);
             }
         },
+
         find: {
             async onExecute(editor, params) {
                 let msg = `finding ${params[0]}`;
@@ -153,6 +154,7 @@ const modifiers = {
                 editor.setTempStatusMessage(msg);
             }
         },
+
         split: {
             shortcut: 'sv',
             async onExecute(editor, params) {
@@ -162,6 +164,7 @@ const modifiers = {
                 });
             }
         },
+
         'split-horizontal': {
             shortcut: 'sh',
             async onExecute(editor, params) {
@@ -173,8 +176,9 @@ const modifiers = {
                 });
             }
         },
-        close: {
-            shortcut: 'c',
+
+        quit: {
+            shortcut: 'q',
             async onExecute(editor) {
                 editor.emit('editor:close');
             }
@@ -317,6 +321,18 @@ const modifiers = {
                 if (!editor.isMode('select')) { return false; }
                 editor.selectionDelete();
                 editor.setMode('edit');
+                return true;
+            },
+
+            w: (editor) => {
+                if (!editor.isMode('navigate')) { return false; }
+                modifiers.commands.write.onExecute(editor);
+                return true;
+            },
+
+            q: (editor) => {
+                if (!editor.isMode('navigate')) { return false; }
+                modifiers.commands.quit.onExecute(editor);
                 return true;
             }
         }
