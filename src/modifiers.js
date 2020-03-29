@@ -177,6 +177,15 @@ const modifiers = {
             }
         },
 
+        edit: {
+            shortcut: 'e',
+            async onExecute(editor, params) {
+                if (!params.length) { return; }
+
+                editor.edit(params[0]);
+            }
+        },
+
         quit: {
             shortcut: 'q',
             async onExecute(editor) {

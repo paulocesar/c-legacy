@@ -3,15 +3,26 @@ const ansi = require('./ansi-escape-codes');
 const File = require('./file');
 const modifiers = require('./modifiers');
 
+const buffersByName = { };
+
+function getFileBuffer(filename) {
+    let b = buffersByName[filename];
+    return filename && b ? b : new File(filename);
+}
+
 class Editor extends EventEmitter {
     constructor(file) {
         super();
 
-        if (file instanceof File) {
-            this.file = file;
-        } else {
-            this.file = new File(file);
-        }
+        this._lastCursorX = 0;
+        this._cursor = { x: 0, y: 0 };
+        this._lastCursor = { x: 0, y: 0 };
+        this._selection = {
+            start: { x: 0, y: 0 },
+            end: { x: 0, y: 0 }
+        };
+
+        this.edit(file);
 
         this.mode = 'navigate';
         this.mustRemove = false;
@@ -22,13 +33,6 @@ class Editor extends EventEmitter {
         this.msgInterval = null;
         this.status = { rows: 1, context: '' };
 
-        this._lastCursorX = 0;
-        this._cursor = { x: 0, y: 0 };
-        this._lastCursor = { x: 0, y: 0 };
-        this._selection = {
-            start: { x: 0, y: 0 },
-            end: { x: 0, y: 0 }
-        };
         this.prefixes = [
             modifiers.prefixes.lineNumbers
         ];
@@ -47,6 +51,16 @@ class Editor extends EventEmitter {
 
         this.initializeModifiers();
         this.setDefaultStatusMessage();
+    }
+
+    edit(file) {
+        if (file instanceof File) {
+            this.file = file;
+        } else {
+            this.file = getFileBuffer(file);
+        }
+        this.setCursor({ x: 0, y: 0 });
+        this.refresh();
     }
 
     initializeModifiers() {
