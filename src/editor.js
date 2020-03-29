@@ -14,6 +14,15 @@ class Editor extends EventEmitter {
     constructor(file) {
         super();
 
+        this.initVariables();
+
+        this.edit(file);
+
+        this.initializeModifiers();
+        this.setDefaultStatusMessage();
+    }
+
+    initVariables() {
         this._lastCursorX = 0;
         this._cursor = { x: 0, y: 0 };
         this._lastCursor = { x: 0, y: 0 };
@@ -21,8 +30,6 @@ class Editor extends EventEmitter {
             start: { x: 0, y: 0 },
             end: { x: 0, y: 0 }
         };
-
-        this.edit(file);
 
         this.mode = 'navigate';
         this.mustRemove = false;
@@ -49,8 +56,6 @@ class Editor extends EventEmitter {
             modifiers.keyboard.default
         ];
 
-        this.initializeModifiers();
-        this.setDefaultStatusMessage();
     }
 
     edit(file) {
