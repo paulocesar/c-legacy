@@ -318,8 +318,11 @@ const modifiers = {
             },
 
             '\b': (editor) => {
-                if (!editor.isMode('select')) { return false; }
-                editor.selectionDelete();
+                const isSelect = editor.isMode('select');
+                const isNav = editor.isMode('navigate');
+
+                if (!isSelect && !isNav) { return false; }
+                isSelect ? editor.selectionDelete() : editor.delete();
                 editor.setMode('edit');
                 return true;
             },
