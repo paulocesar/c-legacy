@@ -46,8 +46,15 @@ class CommandLine extends Editor {
     async execute() {
         const params = this.file.content[0].text.trim().split(/\s+/);
 
+        const invalid = () => {
+            this.editor.setTempStatusMessage('invalid command');
+            return this.switchToEditor();
+        }
+
         // removes command char '>'
         params.shift();
+
+        if (!params.length) { return invalid(); }
 
         const cmd = params.shift();
         let action = null;
@@ -61,10 +68,7 @@ class CommandLine extends Editor {
             }
         }
 
-        if (!action) {
-            this.editor.setTempStatusMessage('invalid command');
-            return this.switchToEditor();
-        }
+        if (!action) { return invalid(); }
 
         if (mustLock) { this.emit('lock'); }
 
