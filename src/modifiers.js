@@ -9,7 +9,7 @@ const highlights = {
         },
         {
             color: ansi.foreground.cyan,
-            regex: /([\{]|[\}])/g
+            regex: /([\{\}\[\]()]|[\w\d]+\()/g
         }
     ]
 }
