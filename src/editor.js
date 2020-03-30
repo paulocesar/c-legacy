@@ -231,7 +231,9 @@ class Editor extends EventEmitter {
             const symbol = this.file.isDirty ? '*' : ' ';
             const msg = `${symbol} ${this.status.context} ${backfill}`;
             const statusSize = this.columns.size * this.status.rows;
-            const statusLine = ansi.background.white +
+            const background = this.hasFocus ? ansi.background.cyan :
+                ansi.background.white;
+            const statusLine = background +
                 ansi.foreground.black + (msg).substring(0, statusSize) +
                 ansi.reset;
 

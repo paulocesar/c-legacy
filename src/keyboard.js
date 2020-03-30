@@ -15,6 +15,7 @@ function parse(char, key) {
     if (name === 'backspace') { return '\b'; }
     if (name === 'return') { return '\n'; }
 
+    if([ 'up', 'down', 'left', 'right' ].includes(name)) { return name; }
     return sequence || name || null;
 }
 
