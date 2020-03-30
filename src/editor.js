@@ -330,10 +330,23 @@ class Editor extends EventEmitter {
     }
 
     updateRows() {
+        const { y } = this.getCursor();
         const length = this.file.length() - 1;
+
+        if (this.file.length() > this.rows.size) {
+            if (y < this.rows.start) { this.rows.start = y; }
+            if (this.rows.start < 0) { this.rows.start = 0; }
+
+            if (y > this.rows.start + this.rows.size) {
+                this.rows.start = y;
+            }
+            if (this.rows.start + this.rows.size > length) {
+                this.rows.start = length - (this.rows.size + 1);
+            }
+        }
+
         const start = this.rows.start;
         const end = this.rows.start + this.rows.size;
-        const { y } = this.getCursor();
 
         if (y + 3 > end && y + 3 < length) { this.rows.start += (y + 3) - end; }
 

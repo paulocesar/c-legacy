@@ -308,6 +308,20 @@ const modifiers = {
                 return true;
             },
 
+            'g': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.moveTo({ x: 0, y: 0 });
+                editor.refresh();
+                return true;
+            },
+
+            'G': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.moveTo({ x: 0, y: editor.file.length() - 1 });
+                editor.refresh();
+                return true;
+            },
+
             '\/': (editor) => {
                 const canSearch = editor.isMode('navigate') ||
                     editor.isMode('select');
