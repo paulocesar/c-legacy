@@ -269,6 +269,24 @@ const modifiers = {
                 return true;
             },
 
+            'a': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.setMode('edit');
+                const { x, y } = editor.getCursor();
+                editor.moveTo({ x: x + 1, y });
+                return true;
+            },
+
+            'o': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.setMode('edit');
+                const { x, y } = editor.getCursor();
+                const  len = editor.file.lineLength(y);
+                editor.moveTo({ x: len + 1, y });
+                editor.add('\n');
+                return true;
+            },
+
             'i': (editor) => {
                 if (editor.isMode('edit')) { return false; }
                 editor.setMode('edit');

@@ -22,6 +22,8 @@ shift-j | move down | navigate, select, edit
 shift-k | move up | navigate, select, edit
 shift-l | move right | navigate, select, edit
 i | switch to edit mode | navigate, select
+a | change to edit mode after current char | navigate, select
+o | change to edit mode and add new line | navigate, select
 enter | switch to command mode | navigate, select
 s | switch to selection mode | navigate
 ; | switch to search in command mode | navigate, select
