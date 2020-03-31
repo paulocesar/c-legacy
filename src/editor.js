@@ -53,9 +53,9 @@ class Editor extends EventEmitter {
         ];
 
         this.keyboard = [
+            modifiers.keyboard.language,
             modifiers.keyboard.default
         ];
-
     }
 
     edit(file) {
@@ -376,7 +376,7 @@ class Editor extends EventEmitter {
 
         let c = name;
 
-        if (name === '\t') { c = '    '; }
+        if (name === '\t') { c = ' '; }
         else if (name.length > 1) { return; }
 
         this.add(c);

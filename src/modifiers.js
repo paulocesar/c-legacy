@@ -131,7 +131,14 @@ const modifiers = {
             async onExecute(editor, params) {
                 let msg = 'saved';
                 try {
-                    // TODO: call str.trimEnd() before save and fix cursor pos
+
+                    if (editor.file.getExtension() === 'js') {
+                        for (const l of editor.file.content) {
+                            l.text = l.text.trimEnd();
+                        }
+                    }
+
+                    editor.moveTo(editor.getCursor());
                     await editor.file.save();
                 } catch(e) {
                     msg = 'cannot save';
@@ -195,10 +202,34 @@ const modifiers = {
     },
 
     keyboard: {
-        default: {
-            initialize: (editor) => { },
+        language: {
+            initialize(editor) { },
+            others(editor, key) {
+                if (!editor.isMode('edit')) { return false; }
+                if (editor.file.getExtension() !== 'js') { return false; }
 
-            others: (editor, key) => {
+                if (key === '\n') {
+                    const { y } = editor.getCursor();
+                    const line = editor.file.content[y] || { text: '' };
+                    const whitespaces = /^[ ]*/.exec(line.text)[0];
+
+                    editor.add('\n');
+                    editor.add(whitespaces);
+                    return true;
+                }
+
+                if (key === '\t') {
+                    editor.add('    ');
+                    return true;
+                }
+
+                return false;
+            }
+        },
+        default: {
+            initialize(editor) { },
+
+            others(editor, key) {
                 return !editor.isMode('edit');
             },
 
