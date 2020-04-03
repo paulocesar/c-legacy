@@ -233,6 +233,11 @@ const modifiers = {
                 return !editor.isMode('edit');
             },
 
+            'ctrl-c': (editor) => {
+                editor.setTempStatusMessage('TODO: autocomplete');
+                return true;
+            },
+
             'ctrl-x': (editor) => {
                 if (editor.isMode('edit')) {
                     editor.setMode('navigate');
@@ -242,16 +247,36 @@ const modifiers = {
                 return true;
             },
 
-            'ctrl-y': (editor) => {
+            'y': (editor) => {
                 if (!editor.isMode('select')) { return false; }
                 editor.copy();
                 return true;
             },
 
-            'ctrl-t': (editor) => {
+            't': (editor) => {
                 if (!editor.isMode('select')) { return false; }
                 editor.cut();
                 return true;
+            },
+
+            'p': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.paste();
+                return true;
+            },
+
+            'ctrl-p': (editor) => {
+                editor.paste();
+                return true;
+            },
+
+            '*': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                const word = editor.file.findNearWord(editor.getCursor());
+                if (!word) { return true; }
+
+                editor.find(word);
+                editor.findNext();
             },
 
             'b': (editor) => {
@@ -273,11 +298,6 @@ const modifiers = {
 
             'ctrl-n': (editor) => {
                 editor.findNext();
-                return true;
-            },
-
-            'ctrl-p': (editor) => {
-                editor.paste();
                 return true;
             },
 

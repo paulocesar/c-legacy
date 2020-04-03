@@ -272,7 +272,26 @@ class File {
         return helpers.inIntervals(intervals, pos.x);
     }
 
-    findNearWords(pos) {
+    findNearWord(pos) {
+        const { prev, current, next } = this.findNearWordsSelection(pos);
+
+        const selection = current || prev || next;
+
+        if (!selection) { return false; }
+
+        const { start, end } = selection;
+
+        const text = this.content[start.y].text;
+        let word = '';
+
+        for (let x = start.x; x <= end.x; x++) {
+            word += text[x];
+        }
+
+        return word;
+    }
+
+    findNearWordsSelection(pos) {
         const content = { };
         const rgxWord = /([\w\d]+|[^\w\d\s]{1})/g
         const getInterval = (y) => this.findIntervals(y, rgxWord);
@@ -302,15 +321,16 @@ class File {
 
         const current = getInterval(pos.y);
 
-        const currentIdx = helpers.getIntervalIndex(current, pos.x);
-        const currentInterval = current[currentIdx] || null;
+        const currentIdx = helpers.getIntervalIndexForCursor(current, pos.x);
+        const currentInterval = current[currentIdx] || current[currentIdx]
+            || null;
 
         let prevInterval = prev[prev.length - 1] || null;
         let nextInterval = next[0] || null;
 
         if (currentIdx !== null) {
-            if (currentIdx > 1) {
-                prevInterval = current[currentIdx - 2];
+            if (currentIdx > 0) {
+                prevInterval = current[currentIdx - 1];
                 prevY = pos.y;
             }
 

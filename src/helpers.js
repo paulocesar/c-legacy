@@ -34,6 +34,16 @@ module.exports = {
         return null;
     },
 
+    getIntervalIndexForCursor(intervals, x) {
+        for (let i = 0; i < intervals.length; i++) {
+            const { start, end } = intervals[i];
+            if (x >= start && x <= end + 1) { return i; }
+        }
+
+        return null;
+    },
+
+
     splitIntervals(intervals, rule) {
         const results = [ [ ], [ ] ];
         for (const i of intervals) {

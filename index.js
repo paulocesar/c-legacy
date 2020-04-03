@@ -217,10 +217,10 @@ function terminalSetup() {
         const name = keyboard.parse(char, key);
         if (name === null) { return; }
 
-        if (name === 'ctrl-c') { return terminalFinish(); }
+        if (name === 'ctrl-z') { terminalFinish(); }
         if (name === 'ctrl-s') { return terminalSave(); }
 
-        //getEditor().setTempStatusMessage(`${name} ${JSON.stringify(key)}`);
+        // getEditor().setTempStatusMessage(`${name} ${JSON.stringify(key)}`);
 
         if ([ 'up', 'down', 'left', 'right' ].includes(name)) {
             gridNavigate(key.name);
