@@ -504,7 +504,7 @@ class Editor extends EventEmitter {
             return;
         }
 
-        this.selectionStart(selection);
+        this.setCursor(selection.end);
         this.updateSize();
     }
 
@@ -515,7 +515,7 @@ class Editor extends EventEmitter {
             return;
         }
 
-        this.selectionStart(selection);
+        this.setCursor(selection.end);
         this.updateSize();
     }
 

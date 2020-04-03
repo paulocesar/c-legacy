@@ -254,6 +254,18 @@ const modifiers = {
                 return true;
             },
 
+            'b': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.findPrev();
+                return true;
+            },
+
+            'n': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                editor.findNext();
+                return true;
+            },
+
             'ctrl-b': (editor) => {
                 editor.findPrev();
                 return true;
