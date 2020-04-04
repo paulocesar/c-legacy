@@ -277,6 +277,19 @@ const modifiers = {
 
                 editor.find(word);
                 editor.findNext();
+                return true;
+            },
+
+            'f': (editor) => {
+                if (editor.isMode('edit')) { return false; }
+                const c = editor.getCursor();
+                const s = editor.file.findNearWordSelection(c);
+                if (!s) { return true; }
+
+                const { start } = s;
+
+                editor.selectionStart({ start, end: c });
+                return true;
             },
 
             'b': (editor) => {
@@ -369,11 +382,32 @@ const modifiers = {
                 return true;
             },
 
+            'v': (editor) => {
+                if (editor.isMode('edit')) { return true; }
+                editor.isMode('select') ?
+                    editor.selectionEnd() :
+                    editor.selectionStart();
+
+                return true;
+            },
+
             'ctrl-v': (editor) => {
                 editor.isMode('select') ?
                     editor.selectionEnd() :
                     editor.selectionStart();
 
+                return true;
+            },
+
+            'u': (editor) => {
+                if (!editor.isMode('navigate')){ return false; }
+                editor.undo();
+                return true;
+            },
+
+            'r': (editor) => {
+                if (!editor.isMode('navigate')){ return false; }
+                editor.redo();
                 return true;
             },
 

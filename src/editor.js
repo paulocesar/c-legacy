@@ -253,7 +253,7 @@ class Editor extends EventEmitter {
 
     moveNextWord() {
         const cursor = this.getCursor();
-        const { next, current } = this.file.findNearWordsSelection(cursor);
+        const { next, current } = this.file.findAllNearWordSelections(cursor);
         if (!next && !current) { return; }
 
         let selection = current;
@@ -266,7 +266,7 @@ class Editor extends EventEmitter {
 
     movePrevWord() {
         const cursor = this.getCursor();
-        const { prev, current } = this.file.findNearWordsSelection(cursor);
+        const { prev, current } = this.file.findAllNearWordSelections(cursor);
         if (!prev && !current) { return; }
 
         let selection = current;
@@ -435,7 +435,7 @@ class Editor extends EventEmitter {
             this._selection.end = temp;
         }
 
-        this.setMode('edit');
+        this.setMode('navigate');
     }
 
     selectionDelete() {
@@ -534,7 +534,7 @@ class Editor extends EventEmitter {
 
     paste() {
         this.emit('selection:paste');
-        this.setTempStatusMessage('paste')
+        this.setTempStatusMessage('paste');
     }
 
     pasteBuffer(buffer) {

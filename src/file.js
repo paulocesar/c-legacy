@@ -273,7 +273,7 @@ class File {
     }
 
     findNearWord(pos) {
-        const { prev, current, next } = this.findNearWordsSelection(pos);
+        const { prev, current, next } = this.findAllNearWordSelections(pos);
 
         const selection = current || prev || next;
 
@@ -291,7 +291,12 @@ class File {
         return word;
     }
 
-    findNearWordsSelection(pos) {
+    findNearWordSelection(pos) {
+        const { current, prev, next } = this.findAllNearWordSelections(pos);
+        return current || prev || next || null;
+    }
+
+    findAllNearWordSelections(pos) {
         const content = { };
         const rgxWord = /([\w\d]+|[^\w\d\s]{1})/g
         const getInterval = (y) => this.findIntervals(y, rgxWord);
