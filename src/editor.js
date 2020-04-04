@@ -493,8 +493,9 @@ class Editor extends EventEmitter {
         return p1.y < p2.y || (p1.y === p2.y && p1.x < p2.x);
     }
 
-    find(regexString) {
-        this.file.find(regexString);
+    find(regexString, modifier) {
+        const res = this.file.find(regexString, modifier);
+        if (res) { this.setTempStatusMessage(res); }
     }
 
     findNext() {

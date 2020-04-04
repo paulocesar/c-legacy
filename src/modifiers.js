@@ -152,7 +152,7 @@ const modifiers = {
             async onExecute(editor, params) {
                 let msg = `finding ${params[0]}`;
                 try {
-                    editor.find(params[0]);
+                    editor.find(params[0], 'i');
                     editor.findNext();
                 } catch(e) {
                     msg = e.toString();

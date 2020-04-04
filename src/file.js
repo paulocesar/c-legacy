@@ -188,8 +188,7 @@ class File {
             if (modifier) { mod += modifier; }
             this.findRegex = new RegExp(regex, mod);
         } catch(ex) {
-            this.setTempStatusMessage('invalid regexp');
-            return;
+            return `'${regex} ${modifier}' is a invalid RegExp`;
         }
 
         for (const y in this.content) {
