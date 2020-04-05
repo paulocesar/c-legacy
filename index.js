@@ -67,6 +67,11 @@ function displayClear() {
     readline.clearScreenDown(process.stdout);
 }
 
+function displayAutocompletePosition() {
+    if (mode !== 'autocomplete') { return; }
+    const { x, y } = autocomplete.editor.getDisplayCursorPosition();
+}
+
 function displayResize() {
     const maxCols = process.stdout.columns;
     const maxRows = process.stdout.rows - 2;

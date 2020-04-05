@@ -173,6 +173,14 @@ class Editor extends EventEmitter {
         return false;
     }
 
+    getDisplayCursorPosition() {
+        const rowStart = this.rows.start;
+        const prefixSize = this.maxPrefixSize();
+        const colStart = this.columns.start;
+        const { x, y } = this.getCursor();
+        return { x: (x + prefixSize) - colStart, y: y - rowStart };
+    }
+
     getDisplayLines() {
         const rowStart = this.rows.start;
         const rowEnd = rowStart + this.rows.size;
