@@ -1,6 +1,10 @@
 function parse(char, key) {
     let prefix = '';
 
+    if (key.sequence === '\u0000' && key.name === '`') {
+        return 'ctrl-spacebar';
+    }
+
     if (key.ctrl) { return `ctrl-${key.name}`; }
     if (key.sequence === '\b' && key.name === 'backspace') {
         return 'ctrl-h';

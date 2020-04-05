@@ -233,8 +233,9 @@ const modifiers = {
                 return !editor.isMode('edit');
             },
 
-            'ctrl-c': (editor) => {
-                editor.setTempStatusMessage('TODO: autocomplete');
+            'ctrl-spacebar': (editor) => {
+                if (!editor.isMode('edit')) { return false; }
+                editor.emit('autocomplete:start');
                 return true;
             },
 

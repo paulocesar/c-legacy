@@ -4,6 +4,7 @@ const readline = require('readline');
 const Editor = require('./src/editor');
 const CommandLine = require('./src/command-line');
 const keyboard = require('./src/keyboard');
+const Autocomplete = require('./src/autocomplete');
 
 let grid = [ [ ], [ ], [ ] ];
 
@@ -20,6 +21,7 @@ function gridColumns() {
 }
 
 let commandLine = null;
+let autocomplete = null;
 let mode = 'navigate';
 let previousLines = [ ];
 let selectionBuffer = '';
@@ -113,6 +115,11 @@ function createEditor(filename) {
         gridClear();
 
         if (gridIsEmpty()) { return terminalFinish(); }
+    });
+
+    editor.on('autocomplete:start', () => {
+        mode = 'autocomplete';
+        autocomplete.run(editor, 'word');
     });
 
     return editor;
@@ -222,12 +229,21 @@ function terminalSetup() {
 
         // getEditor().setTempStatusMessage(`${name} ${JSON.stringify(key)}`);
 
+        let e = getEditor();
+        if (mode === 'command') {
+            e = commandLine
+        }
+
+        if (mode === 'autocomplete') {
+            e = autocomplete.editor;
+        }
+
         if ([ 'up', 'down', 'left', 'right' ].includes(name)) {
             gridNavigate(key.name);
-        } else if (mode === 'command') {
-            commandLine.processKey(name);
+        } else if (mode === 'autocomplete') {
+            autocomplete.processKey(name);
         } else {
-            getEditor().processKey(name);
+            e.processKey(name);
         }
 
         displayRefresh();
@@ -254,6 +270,17 @@ function terminalLoad(filename) {
 
     commandLine.on('unlock', () => {
         globalLock = false;
+    });
+
+    commandLine.on('autocomplete:start', () => {
+        mode = 'autocomplete';
+        autocomplete.run(commandLine, 'path');
+    });
+
+    autocomplete = new Autocomplete();
+
+    autocomplete.on('autocomplete:done', () => {
+        mode = 'edit';
     });
 
     gridAdd(createEditor(filename), 'vertical');

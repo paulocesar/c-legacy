@@ -1,4 +1,29 @@
 const Editor = require('./editor');
+const modifiers = require('./modifiers');
+
+const strategies = {
+    word(editor) {
+        const { file } = editor;
+        const word = file.findNearWord(editor.getCursor());
+        if (!word || word.length < 1) { return []; }
+
+        const rgxStr = RegExp(`(^|[^\\w]{0,1})${word}\\w*([^\\w]{0,1}|$)`, 'g');
+
+        // TODO: shouldn't create a new copy of the entire file
+        const text = file.getEntireFileString(' ');
+
+        let match = null;
+        const results = { };
+        while((match = rgxStr.exec(text)) !== null) {
+            const opt = match[0].replace(/[^\w]/g, '');
+            results[opt] = true;
+        }
+
+        return Object.keys(results);
+    },
+    path(editor) {
+    }
+}
 
 class Autocomplete extends Editor {
     constructor() {
@@ -9,13 +34,12 @@ class Autocomplete extends Editor {
     }
 
     run(editor, strategy) {
-        const { x, y } = editor.getCursor();
-        const l = editor.file.content[y].text;
+        this.editor = editor;
+        const results = strategies.word(editor).join(' ');
 
-
-        // TODO: get current word/path (strategy) and build suggestion list
-        for (let idx = x; x <= 0; x--) {
-
+        if (!results.length) {
+            editor.setTempStatusMessage('cannot find results');
+            return this.cancel();
         }
     }
 
@@ -25,6 +49,8 @@ class Autocomplete extends Editor {
 
         if (name === 'ctrl-j') { return this.moveOffset({ x: 0, y: 1 }); }
         if (name === 'ctrl-k') { return this.moveOffset({ x: 0, y: -1 }); }
+
+        this.editor.processKey(name);
     }
 
     cancel() { this.emit('autocomplete:done', ''); }

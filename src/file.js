@@ -38,8 +38,14 @@ class File {
     async save() {
         if (this.isReadOnly) { return; }
 
-        await writeFile(this.name, this.content.map((c) => c.text).join('\n'));
+        // TODO: shouldn't create a new copy of the entire file
+        await writeFile(this.name, this.getEntireFileString());
         this.isDirty = false;
+    }
+
+    // MUST: remove bad pattern. shouldn't create a new copy of the entire file
+    getEntireFileString(joinChar = '\n') {
+        return this.content.map((c) => c.text).join(joinChar);
     }
 
     recordAction(action, start, end, chars) {
